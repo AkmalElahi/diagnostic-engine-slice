@@ -8,7 +8,7 @@ import {
   StatusBar,
   Alert,
 } from 'react-native';
-import { FlowEngine } from './src/utils/flowEngine';
+import { FlowEngine } from './src/utils/FlowEngine';
 import { FlowDefinition, SessionState, SessionSummary } from './src/types';
 import { QuestionNodeComponent } from './src/components/QuestionNodeComponent';
 import { SafetyNodeComponent } from './src/components/SafetyNodeComponent';
