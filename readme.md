@@ -69,7 +69,40 @@ This application demonstrates a deterministic diagnostic engine that:
    }
    ```
 
+## Installation
+
+### Prerequisites
+- Node.js 18+ and npm
+- Expo CLI
+- iOS Simulator (Mac) or Android Emulator
+
+### Setup
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Start the IOS Simulator**:
+   ```bash
+   npx expo run:ios
+   ```
+
+2. **Start the Android Emulator**:
+   ```bash
+   npx expo run:android
+   ```
+
 ## How It Works
+
+### Flow Execution
+
+1. **Load Flow**: Flow definition loaded from JSON
+2. **Start Session**: Creates new session with unique ID and timestamp
+3. **Navigate Nodes**: Process user responses to determine next node
+4. **Record Events**: Each interaction saved as timestamped event
+5. **Persist State**: Atomic writes to MMKV after each step
+6. **Generate Summary**: On completion, immutable summary created
 
 ### State Management
 
@@ -102,7 +135,27 @@ interface SessionState {
 The app automatically checks for existing session on startup:
 1. If found → Resume from exact node
 2. If completed → Show result
-3. If none → Show start session screen
+3. If none → Show welcome screen
+
+## Testing Resume Functionality
+
+### iOS Simulator
+1. Start a diagnostic flow
+2. Complete a few steps
+3. Force quit: `Cmd + Shift + H + H` then swipe up
+4. Restart app → Should resume at exact node
+
+### Android Emulator
+1. Start a diagnostic flow
+2. Complete a few steps
+3. Force quit: Swipe up to recent apps and swipe away
+4. Restart app → Should resume at exact node
+
+### Physical Device
+1. Start a diagnostic flow
+2. Complete a few steps
+3. Force quit: Double-tap home, swipe up to close
+4. Restart app → Should resume at exact node
 
 ## Summary Schema
 
@@ -128,7 +181,6 @@ Completed sessions generate summaries matching this schema:
 }
 ```
 
-
 ## Acceptance Checklist
 
 ### Engine
@@ -147,3 +199,38 @@ Completed sessions generate summaries matching this schema:
 ### Summary
 - ✅ Matches schema
 - ✅ Correct ordering
+
+### Constraints
+- ✅ No backend
+- ✅ No cloud
+- ✅ No AI
+
+### Deliverables
+- ✅ Source code
+- ✅ README
+- ⏳ Demo video
+
+## Storage Details
+
+### Why MMKV over SQLite?
+
+- **Synchronous**: No async/await complexity
+- **Faster**: 10-100x faster for key-value operations
+- **Simpler**: Perfect for state persistence
+- **Atomic**: Built-in atomic operations
+- **Smaller**: Less overhead than SQLite
+
+### Storage Keys
+
+- `session_state`: Current active session
+- `session_history`: Array of completed summaries
+
+## Development Notes
+
+### Adding New Node Types
+
+1. Add type to `src/types.ts`
+2. Create component in `src/components/`
+3. Add case in `flowEngine.ts` processResponse()
+4. Add render case in `App.tsx`
+
