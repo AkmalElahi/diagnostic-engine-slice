@@ -1,4 +1,4 @@
-# RV Diagnostic Engine
+# RV TECH VAULT — SLICE PROOF
 
 An offline-first, JSON-driven diagnostic flow system built with React Native and Expo.
 
