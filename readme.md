@@ -210,21 +210,6 @@ Completed sessions generate summaries matching this schema:
 - ✅ README
 - ⏳ Demo video
 
-## Storage Details
-
-### Why MMKV over SQLite?
-
-- **Synchronous**: No async/await complexity
-- **Faster**: 10-100x faster for key-value operations
-- **Simpler**: Perfect for state persistence
-- **Atomic**: Built-in atomic operations
-- **Smaller**: Less overhead than SQLite
-
-### Storage Keys
-
-- `session_state`: Current active session
-- `session_history`: Array of completed summaries
-
 ## Development Notes
 
 ### Adding New Node Types
