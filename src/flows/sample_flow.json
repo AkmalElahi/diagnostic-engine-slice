@@ -1,0 +1,36 @@
+{
+    "flow_id": "demo_12v_no_power",
+    "flow_version": "0.1",
+    "start_node": "q1",
+    "nodes": {
+        "q1": {
+            "type": "QUESTION",
+            "text": "Is the RV connected to shore power?",
+            "yes": "s1",
+            "no": "m1"
+        },
+        "s1": {
+            "type": "SAFETY",
+            "text": "Disconnect shore power before proceeding.",
+            "next": "m1"
+        },
+        "m1": {
+            "type": "MEASURE",
+            "text": "Measure battery voltage (DC).",
+            "min": 10,
+            "max": 14,
+            "branches": {
+                "below": "t1",
+                "within": "t2"
+            }
+        },
+        "t1": {
+            "type": "TERMINAL",
+            "result": "Battery voltage is low."
+        },
+        "t2": {
+            "type": "TERMINAL",
+            "result": "Battery voltage is normal."
+        }
+    }
+}
