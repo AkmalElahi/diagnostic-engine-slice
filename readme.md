@@ -102,7 +102,7 @@ interface SessionState {
 The app automatically checks for existing session on startup:
 1. If found → Resume from exact node
 2. If completed → Show result
-3. If none → Show welcome screen
+3. If none → Show start session screen
 
 ## Summary Schema
 
