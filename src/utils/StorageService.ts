@@ -4,13 +4,19 @@ import { SessionState, SessionSummary } from '../types';
 // Initialize MMKV storage
 const storage = createMMKV({
   id: 'rv-diagnostic-engine',
-  encryptionKey: undefined,
 });
 
 const STORAGE_KEYS = {
   SESSION_STATE: 'session_state',
   SESSION_HISTORY: 'session_history',
 } as const;
+
+export class StorageError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'StorageError';
+  }
+}
 
 /**
  * Storage service for offline-first persistence using MMKV
@@ -22,7 +28,7 @@ export class StorageService {
       storage.set(STORAGE_KEYS.SESSION_STATE, json);
     } catch (error) {
       console.error('Error saving session state:', error);
-      throw new Error('Failed to save session state');
+      throw new StorageError('Failed to save session state');
     }
   }
 
@@ -30,9 +36,10 @@ export class StorageService {
     try {
       const json = storage.getString(STORAGE_KEYS.SESSION_STATE);
       if (!json) return null;
-      return JSON.parse(json) as SessionState;
+      
+      const state = JSON.parse(json) as SessionState;
+      return state;
     } catch (error) {
-      console.error('Error loading session state:', error);
       return null;
     }
   }
@@ -41,18 +48,23 @@ export class StorageService {
     try {
       storage.remove(STORAGE_KEYS.SESSION_STATE);
     } catch (error) {
-      console.error('Error clearing session state:', error);
+      throw new StorageError('Failed to clear session state');
     }
   }
 
   static saveSessionSummary(summary: SessionSummary): void {
     try {
       const history = this.getSessionHistory();
+      
+      const exists = history.some(s => s.session_id === summary.session_id);
+      if (exists) {
+        return;
+      }
+      
       history.push(summary);
       storage.set(STORAGE_KEYS.SESSION_HISTORY, JSON.stringify(history));
     } catch (error) {
-      console.error('Error saving session summary:', error);
-      throw new Error('Failed to save session summary');
+      throw new StorageError('Failed to save session summary');
     }
   }
 
@@ -62,7 +74,6 @@ export class StorageService {
       if (!json) return [];
       return JSON.parse(json) as SessionSummary[];
     } catch (error) {
-      console.error('Error loading session history:', error);
       return [];
     }
   }
@@ -71,7 +82,7 @@ export class StorageService {
     try {
       storage.remove(STORAGE_KEYS.SESSION_HISTORY);
     } catch (error) {
-      console.error('Error clearing session history:', error);
+      throw new StorageError('Failed to clear session history');
     }
   }
 
@@ -79,7 +90,7 @@ export class StorageService {
     try {
       storage.clearAll();
     } catch (error) {
-      console.error('Error clearing all storage:', error);
+      throw new StorageError('Failed to clear all storage');
     }
   }
 }
