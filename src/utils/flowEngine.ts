@@ -6,40 +6,71 @@ import {
   SessionSummary,
 } from '../types';
 import { StorageService } from './StorageService';
+import { FlowValidator, FlowValidationError } from './flowValidator';
+
+export class FlowEngineError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'FlowEngineError';
+  }
+}
 
 export class FlowEngine {
   private flowDefinition: FlowDefinition;
 
   constructor(flowDefinition: FlowDefinition) {
-    this.flowDefinition = flowDefinition;
+    try {
+      // Validate flow on construction
+      FlowValidator.validate(flowDefinition);
+      this.flowDefinition = flowDefinition;
+    } catch (error) {
+      if (error instanceof FlowValidationError) {
+        throw error;
+      }
+      throw new FlowEngineError(`Invalid flow definition: ${error}`);
+    }
   }
 
   startSession(): SessionState {
-    const sessionId = this.generateSessionId();
-    const startedAt = new Date().toISOString();
+    try {
+      const sessionId = this.generateSessionId();
+      const startedAt = new Date().toISOString();
 
-    const sessionState: SessionState = {
-      flow_id: this.flowDefinition.flow_id,
-      flow_version: this.flowDefinition.flow_version,
-      session_id: sessionId,
-      started_at: startedAt,
-      current_node_id: this.flowDefinition.start_node,
-      events: [],
-      completed: false,
-    };
+      const sessionState: SessionState = {
+        flow_id: this.flowDefinition.flow_id,
+        flow_version: this.flowDefinition.flow_version,
+        session_id: sessionId,
+        started_at: startedAt,
+        current_node_id: this.flowDefinition.start_node,
+        events: [],
+        completed: false,
+      };
 
-    StorageService.saveSessionState(sessionState);
-    return sessionState;
+      StorageService.saveSessionState(sessionState);
+      return sessionState;
+    } catch (error) {
+      throw new FlowEngineError(`Failed to start session: ${error}`);
+    }
   }
 
   resumeSession(): SessionState | null {
-    return StorageService.loadSessionState();
+    try {
+      const session = StorageService.loadSessionState();
+      if (session) {
+        if (session.flow_id !== this.flowDefinition.flow_id) {
+          return null;
+        }
+      }
+      return session;
+    } catch (error) {
+      return null;
+    }
   }
 
   getCurrentNode(sessionState: SessionState): FlowNode {
     const node = this.flowDefinition.nodes[sessionState.current_node_id];
     if (!node) {
-      throw new Error(`Node not found: ${sessionState.current_node_id}`);
+      throw new FlowEngineError(`Node not found: ${sessionState.current_node_id}`);
     }
     return node;
   }
@@ -48,67 +79,90 @@ export class FlowEngine {
     sessionState: SessionState,
     value: string | number | boolean
   ): SessionState {
-    const currentNode = this.getCurrentNode(sessionState);
-    
-    const event: SessionEvent = {
-      node_id: sessionState.current_node_id,
-      type: currentNode.type,
-      value: value,
-      timestamp: new Date().toISOString(),
-    };
+    try {
+      const currentNode = this.getCurrentNode(sessionState);
+      
+      this.validateResponse(currentNode, value);
+      
+      const event: SessionEvent = {
+        node_id: sessionState.current_node_id,
+        type: currentNode.type,
+        value: value,
+        timestamp: new Date().toISOString(),
+      };
 
-    let nextNodeId: string | null = null;
+      let nextNodeId: string | null = null;
 
-    switch (currentNode.type) {
+      switch (currentNode.type) {
+        case 'QUESTION':
+          nextNodeId = value === true ? currentNode.yes : currentNode.no;
+          break;
+
+        case 'SAFETY':
+          nextNodeId = currentNode.next;
+          break;
+
+        case 'MEASURE':
+          const numValue = Number(value);
+          if (numValue < currentNode.min || numValue > currentNode.max) {
+            nextNodeId = currentNode.branches.below;
+          } else {
+            nextNodeId = currentNode.branches.within;
+          }
+          break;
+
+        case 'TERMINAL':
+          const terminalState: SessionState = {
+            ...sessionState,
+            events: [...sessionState.events, event],
+            completed: true,
+            completed_at: new Date().toISOString(),
+            terminal_node_id: sessionState.current_node_id,
+            result: currentNode.result,
+          };
+
+          StorageService.saveSessionState(terminalState);
+          this.generateSummary(terminalState);
+          return terminalState;
+      }
+
+      const updatedState: SessionState = {
+        ...sessionState,
+        current_node_id: nextNodeId!,
+        events: [...sessionState.events, event],
+      };
+
+      StorageService.saveSessionState(updatedState);
+
+      // Auto-process TERMINAL nodes
+      const nextNode = this.flowDefinition.nodes[nextNodeId!];
+      if (nextNode && nextNode.type === 'TERMINAL') {
+        return this.processTerminalNode(updatedState, nextNode);
+      }
+
+      return updatedState;
+    } catch (error) {
+      throw new FlowEngineError(`Failed to process response: ${error}`);
+    }
+  }
+
+  private validateResponse(node: FlowNode, value: string | number | boolean): void {
+    switch (node.type) {
       case 'QUESTION':
-        nextNodeId = value === true ? currentNode.yes : currentNode.no;
-        break;
-
-      case 'SAFETY':
-        nextNodeId = currentNode.next;
-        break;
-
-      case 'MEASURE':
-        const numValue = Number(value);
-        if (numValue < currentNode.min || numValue > currentNode.max) {
-          nextNodeId = currentNode.branches.below;
-        } else {
-          nextNodeId = currentNode.branches.within;
+        if (typeof value !== 'boolean') {
+          throw new FlowEngineError('QUESTION node requires boolean response');
         }
         break;
-
-      case 'TERMINAL':
-        const terminalState: SessionState = {
-          ...sessionState,
-          events: [...sessionState.events, event],
-          completed: true,
-          completed_at: new Date().toISOString(),
-          terminal_node_id: sessionState.current_node_id,
-          result: currentNode.result,
-        };
-
-        console.log('Session completed:', terminalState);
-        StorageService.saveSessionState(terminalState);
-        this.generateSummary(terminalState);
-        return terminalState;
+      case 'MEASURE':
+        if (typeof value !== 'number' && typeof value !== 'string') {
+          throw new FlowEngineError('MEASURE node requires numeric response');
+        }
+        const numValue = Number(value);
+        if (isNaN(numValue)) {
+          throw new FlowEngineError('MEASURE node requires valid number');
+        }
+        break;
     }
-
-    // Update state with next node
-    const updatedState: SessionState = {
-      ...sessionState,
-      current_node_id: nextNodeId!,
-      events: [...sessionState.events, event],
-    };
-
-    StorageService.saveSessionState(updatedState);
-
-    const nextNode = this.flowDefinition.nodes[nextNodeId!];
-    if (nextNode && nextNode.type === 'TERMINAL') {
-      console.log('Next node is TERMINAL, auto-processing...');
-      return this.processTerminalNode(updatedState, nextNode);
-    }
-
-    return updatedState;
   }
 
   private processTerminalNode(sessionState: SessionState, terminalNode: any): SessionState {
@@ -129,14 +183,13 @@ export class FlowEngine {
     };
 
     StorageService.saveSessionState(completedState);
-    this.generateSummary(completedState);
-    
+    this.generateSummary(completedState);    
     return completedState;
   }
 
   private generateSummary(sessionState: SessionState): SessionSummary {
     if (!sessionState.completed) {
-      throw new Error('Cannot generate summary for incomplete session');
+      throw new FlowEngineError('Cannot generate summary for incomplete session');
     }
 
     const summary: SessionSummary = {
@@ -150,8 +203,7 @@ export class FlowEngine {
       result: sessionState.result!,
     };
 
-    StorageService.saveSessionSummary(summary);
-    
+    StorageService.saveSessionSummary(summary);    
     return summary;
   }
 
@@ -166,5 +218,12 @@ export class FlowEngine {
   static getHistory(): SessionSummary[] {
     return StorageService.getSessionHistory();
   }
-}
 
+  getFlowInfo(): { id: string; version: string; name?: string } {
+    return {
+      id: this.flowDefinition.flow_id,
+      version: this.flowDefinition.flow_version,
+      name: this.flowDefinition.flow_id.replace(/_/g, ' ').toUpperCase(),
+    };
+  }
+}
