@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { FlowDefinition } from '../types';
 
@@ -20,6 +21,8 @@ interface Props {
   onViewHistory: () => void;
   historyCount: number;
 }
+
+const isIOS = Platform.OS === 'ios'
 
 export const FlowSelector: React.FC<Props> = ({
   flows,
@@ -123,6 +126,7 @@ const styles = StyleSheet.create({
   },
   historyButton: {
     margin: 15,
+    marginBottom: isIOS ? 15 : 40,
     padding: 18,
     backgroundColor: 'transparent',
     borderWidth: 2,

@@ -1,5 +1,6 @@
 import { createMMKV } from 'react-native-mmkv';
 import { SessionState, SessionSummary } from '../types';
+import { Platform } from 'react-native';
 
 // Initialize MMKV storage
 const storage = createMMKV({
@@ -60,7 +61,7 @@ export class StorageService {
       if (exists) {
         return;
       }
-      
+      console.log(`GENERATED SUMMARY FOR THE SESSION ${Platform.OS}`, summary)
       history.push(summary);
       storage.set(STORAGE_KEYS.SESSION_HISTORY, JSON.stringify(history));
     } catch (error) {

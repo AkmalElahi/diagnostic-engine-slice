@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  Platform,
 } from 'react-native';
 import { FlowEngine, FlowEngineError } from './src/utils/FlowEngine';
 import { FlowDefinition, SessionState, SessionSummary } from './src/types';
@@ -31,6 +32,8 @@ const AVAILABLE_FLOWS = [
     description: 'Diagnose 12V power issues in RV electrical system',
   },
 ];
+
+const isIOS = Platform.OS === 'ios'
 
 export default function App() {
   const [flowEngine, setFlowEngine] = useState<FlowEngine | null>(null);
@@ -332,6 +335,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop:isIOS ? 0 : 30,
     backgroundColor: '#fff',
   },
   header: {

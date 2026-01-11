@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { SessionSummary } from '../types';
 
@@ -13,6 +14,8 @@ interface Props {
   onClose: () => void;
   onClearHistory: () => void;
 }
+
+const isIOS = Platform.OS === 'ios'
 
 export const HistoryView: React.FC<Props> = ({ history, onClose, onClearHistory }) => {
   const formatDate = (isoString: string) => {
@@ -140,6 +143,7 @@ const styles = StyleSheet.create({
   clearButton: {
     backgroundColor: '#f44336',
     margin: 15,
+    marginBottom: isIOS ? 15: 40,
     paddingVertical: 15,
     borderRadius: 8,
   },
