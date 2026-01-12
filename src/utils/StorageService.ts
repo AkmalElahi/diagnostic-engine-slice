@@ -26,6 +26,7 @@ export class StorageService {
   static saveSessionState(state: SessionState): void {
     try {
       const json = JSON.stringify(state);
+      console.log("STORING SESSION FOR SESSION ID", state.session_id)
       storage.set(STORAGE_KEYS.SESSION_STATE, json);
     } catch (error) {
       console.error('Error saving session state:', error);
@@ -39,6 +40,7 @@ export class StorageService {
       if (!json) return null;
       
       const state = JSON.parse(json) as SessionState;
+      console.log("LOAD SESSION FOR SESSION ID", state.session_id)
       return state;
     } catch (error) {
       return null;
@@ -61,7 +63,7 @@ export class StorageService {
       if (exists) {
         return;
       }
-      console.log(`GENERATED SUMMARY FOR THE SESSION ${Platform.OS}`, summary)
+      console.log(`GENERATED FINAL SUMMARY FOR SESSION ID ${summary.session_id}`, summary)
       history.push(summary);
       storage.set(STORAGE_KEYS.SESSION_HISTORY, JSON.stringify(history));
     } catch (error) {

@@ -22,6 +22,8 @@ import { StorageService } from './src/utils/StorageService';
 import { FlowValidationError } from './src/utils/flowValidator';
 
 import sampleFlow from './src/flows/sample_flow.json';
+import { demonstrateDeterminism } from './src/tests/determinism-demo';
+import { demonstrateValidation } from './src/tests/validation-demo';
 
 type ViewMode = 'flow-select' | 'diagnostic' | 'history';
 
@@ -33,32 +35,41 @@ const AVAILABLE_FLOWS = [
   },
 ];
 
-const isIOS = Platform.OS === 'ios'
+const isIOS = Platform.OS === 'ios';
 
 export default function App() {
   const [flowEngine, setFlowEngine] = useState<FlowEngine | null>(null);
   const [sessionState, setSessionState] = useState<SessionState | null>(null);
-  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
+  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(
+    null
+  );
   const [viewMode, setViewMode] = useState<ViewMode>('flow-select');
   const [history, setHistory] = useState<SessionSummary[]>([]);
-  const [error, setError] = useState<string | null>(null);
+
+  // useEffect(() => {
+  //   // Run once on app start
+  //   setTimeout(() => {
+  //     demonstrateDeterminism();
+  //     demonstrateValidation();
+  //   }, 1000);
+  // }, []);
 
   useEffect(() => {
     loadHistory();
-    
+
     const existingSession = StorageService.loadSessionState();
     if (existingSession) {
       try {
         const matchingFlow = AVAILABLE_FLOWS.find(
-          f => f.flow.flow_id === existingSession.flow_id
+          (f) => f.flow.flow_id === existingSession.flow_id
         );
-        
+
         if (matchingFlow) {
           const engine = new FlowEngine(matchingFlow.flow);
           setFlowEngine(engine);
           setSessionState(existingSession);
           setViewMode('diagnostic');
-          
+
           if (existingSession.completed) {
             const summary: SessionSummary = {
               flow_id: existingSession.flow_id,
@@ -106,7 +117,7 @@ export default function App() {
       if (!currentEngine) {
         throw new Error('No flow engine available');
       }
-      
+
       const newSession = currentEngine.startSession();
       setSessionState(newSession);
       setSessionSummary(null);
@@ -227,18 +238,6 @@ export default function App() {
     }
   };
 
-  // Error state
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   // History view
   if (viewMode === 'history') {
     return (
@@ -283,7 +282,7 @@ export default function App() {
     <ErrorBoundary>
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" />
-        
+
         <View style={styles.header}>
           <TouchableOpacity onPress={backToFlowSelect}>
             <Text style={styles.backButton}>Back</Text>
@@ -303,21 +302,21 @@ export default function App() {
               onResponse={handleResponse}
             />
           )}
-          
+
           {currentNode.type === 'SAFETY' && (
             <SafetyNodeComponent
               node={currentNode}
               onAcknowledge={() => handleResponse(true)}
             />
           )}
-          
+
           {currentNode.type === 'MEASURE' && (
             <MeasureNodeComponent
               node={currentNode}
               onSubmit={handleResponse}
             />
           )}
-          
+
           {currentNode.type === 'TERMINAL' && (
             <TerminalNodeComponent
               node={currentNode}
@@ -335,7 +334,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop:isIOS ? 0 : 30,
+    marginTop: isIOS ? 0 : 30,
     backgroundColor: '#fff',
   },
   header: {

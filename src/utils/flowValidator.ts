@@ -19,7 +19,7 @@ export class FlowValidator {
     const nodeIds = Object.keys(flow.nodes);
 
     if (!flow.nodes[flow.start_node]) {
-      throw new FlowValidationError(`start_node "${flow.start_node}" does not exist in nodes`);
+      throw new FlowValidationError(`start_node does not exist in nodes`);
     }
 
     for (const [nodeId, node] of Object.entries(flow.nodes)) {
