@@ -336,55 +336,6 @@ demonstrateValidation();
 
 #### 3. Resume-After-Kill Verification
 
-**Test:** Start diagnostic, force quit app mid-flow, resume and complete.
-
-**Test Steps:**
-
-1. Start session → Answer Q1 (YES) → Acknowledge safety
-2. **Force quit app** (kill process, not background)
-3. Relaunch app
-4. Verify session restored from MMKV (not UI memory)
-5. Complete diagnostic
-6. Compare summary with clean run (no kill)
-
-**Expected Pass Result:**
-
-```
-RESUME-AFTER-KILL TEST PASSED
-
-=== BEFORE KILL ===
-Session ID: session_1234567890_abc123
-Current node: m1
-Events count: 2
-Session state saved to MMKV
-
-SIMULATING APP KILL...
-
-=== AFTER KILL ===
-Session restored from MMKV storage (not UI memory)
-Session ID: session_1234567890_abc123  ← Same ID
-Current node: m1                        ← Same node
-Events count: 2                         ← Same events
-
-=== COMPLETING AFTER RESUME ===
-Final summary events: 4
-Result: "Battery voltage is normal."
-
-=== COMPARISON WITH CLEAN RUN ===
-Clean run summary events: 4
-Result: "Battery voltage is normal."
-
-PASS: Resume-then-complete produces same summary as clean run
-PASS: Session state matches pre-kill state
-PASS: No data loss occurred
-```
-
-**Console Logs Indicate Success:**
-
-```
-Session state loaded: session_1234567890_abc123
-Session resumed: session_1234567890_abc123
-```
 
 **Manual Test (iOS):**
 
@@ -404,13 +355,6 @@ Session resumed: session_1234567890_abc123
 3. Recent apps button, swipe app away (force quit)
 4. Tap app icon to relaunch
 5. ✅ Should resume at step 3
-```
-
-**Run Automated Test:**
-
-```typescript
-import { testResumeAfterKill } from './src/tests/resume.test';
-testResumeAfterKill();
 ```
 
 ## Testing Resume Functionality
