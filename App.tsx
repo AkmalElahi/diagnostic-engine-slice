@@ -19,9 +19,9 @@ import { HistoryView } from './src/components/HistoryView';
 import { FlowSelector } from './src/components/FlowSelector';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { StorageService } from './src/utils/StorageService';
-import { FlowValidationError } from './src/utils/flowValidator';
+import { FlowValidationError } from './src/utils/FlowValidator';
 
-import sampleFlow from './src/flows/sample_flow.json';
+import no_power_issue from './src/flows/flow_1_no_power.json';
 import { demonstrateDeterminism } from './src/tests/determinism-demo';
 import { demonstrateValidation } from './src/tests/validation-demo';
 
@@ -29,7 +29,7 @@ type ViewMode = 'flow-select' | 'diagnostic' | 'history';
 
 const AVAILABLE_FLOWS = [
   {
-    flow: sampleFlow as FlowDefinition,
+    flow: no_power_issue as FlowDefinition,
     name: '12V Power Diagnostic',
     description: 'Diagnose 12V power issues in RV electrical system',
   },

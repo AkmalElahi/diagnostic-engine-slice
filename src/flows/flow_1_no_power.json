@@ -1,0 +1,417 @@
+{
+  "flow_id": "flow_1_no_power_inside_rv",
+  "flow_version": "1.0",
+  "start_node": "capability_gate",
+  "nodes": {
+    "capability_gate": {
+      "type": "QUESTION",
+      "text": "You may need to check battery compartments, panels, or switches. Are you comfortable proceeding?",
+      "yes": "clarify_affected_systems",
+      "no": "terminal_capability_declined"
+    },
+    "clarify_affected_systems": {
+      "type": "QUESTION",
+      "text": "Are 12V systems affected (lights, water pump, fans)?",
+      "yes": "check_120v_also_affected",
+      "no": "terminal_wrong_diagnostic"
+    },
+    "check_120v_also_affected": {
+      "type": "QUESTION",
+      "text": "Are 120V systems also affected (outlets, microwave, AC)?",
+      "yes": "power_context_shore",
+      "no": "power_context_shore"
+    },
+    "power_context_shore": {
+      "type": "QUESTION",
+      "text": "Are you currently connected to shore power?",
+      "yes": "shore_power_safety_check",
+      "no": "power_context_generator"
+    },
+    "power_context_generator": {
+      "type": "QUESTION",
+      "text": "Is your generator currently running?",
+      "yes": "check_voltage_access",
+      "no": "power_context_solar"
+    },
+    "power_context_solar": {
+      "type": "QUESTION",
+      "text": "Are you relying on solar power?",
+      "yes": "check_voltage_access",
+      "no": "check_voltage_access"
+    },
+    "shore_power_safety_check": {
+      "type": "SAFETY",
+      "text": "Please disconnect from shore power before continuing. Tap Continue when disconnected.",
+      "next": "check_voltage_access"
+    },
+    "check_voltage_access": {
+      "type": "QUESTION",
+      "text": "Can you see a battery voltage reading on any display (monitor panel, inverter screen, or battery display)?",
+      "yes": "has_voltage_reading",
+      "no": "check_meter_available"
+    },
+    "has_voltage_reading": {
+      "type": "QUESTION",
+      "text": "Is the voltage reading available now?",
+      "yes": "measure_battery_voltage",
+      "no": "symptom_based_voltage_check"
+    },
+    "check_meter_available": {
+      "type": "QUESTION",
+      "text": "Do you have a multimeter and are you comfortable using it to check battery voltage?",
+      "yes": "measure_battery_voltage",
+      "no": "symptom_based_voltage_check"
+    },
+    "measure_battery_voltage": {
+      "type": "MEASURE",
+      "text": "Enter the battery voltage reading in volts (example: 12.4)",
+      "min": 11.8,
+      "max": 20,
+      "branches": {
+        "below": "voltage_critically_low",
+        "within": "voltage_normal_check_connections"
+      }
+    },
+    "symptom_based_voltage_check": {
+      "type": "QUESTION",
+      "text": "Do 12V items appear weak or sluggish (dim lights, slow fan speeds)?",
+      "yes": "symptom_suggests_low_voltage",
+      "no": "symptom_suggests_normal_voltage"
+    },
+    "symptom_suggests_low_voltage": {
+      "type": "QUESTION",
+      "text": "Have you attempted to charge the battery via shore power or generator?",
+      "yes": "terminal_low_voltage_attempted_charge",
+      "no": "terminal_low_voltage_attempt_charge"
+    },
+    "symptom_suggests_normal_voltage": {
+      "type": "QUESTION",
+      "text": "Can you access your battery compartment to check connections?",
+      "yes": "check_battery_connections",
+      "no": "terminal_no_battery_access"
+    },
+    "voltage_critically_low": {
+      "type": "QUESTION",
+      "text": "Battery voltage is below 11.8V. Have you attempted to charge the battery?",
+      "yes": "terminal_battery_discharged_attempted_charge",
+      "no": "terminal_attempt_charge_first"
+    },
+    "voltage_normal_check_connections": {
+      "type": "QUESTION",
+      "text": "Can you access your battery compartment to visually check connections?",
+      "yes": "check_battery_connections",
+      "no": "terminal_no_battery_access"
+    },
+    "check_battery_connections": {
+      "type": "QUESTION",
+      "text": "Are battery cables and terminals tight, clean, and free of corrosion?",
+      "yes": "check_battery_disconnect_switches",
+      "no": "terminal_connection_issue_identified"
+    },
+    "check_battery_disconnect_switches": {
+      "type": "QUESTION",
+      "text": "Can you locate battery disconnect switches (often on panels, near batteries, or exterior compartments)?",
+      "yes": "verify_disconnect_switches",
+      "no": "check_fuse_panel_access"
+    },
+    "verify_disconnect_switches": {
+      "type": "QUESTION",
+      "text": "Are all battery disconnect switches in the ON position?",
+      "yes": "check_fuse_panel_access",
+      "no": "terminal_disconnect_switch_off"
+    },
+    "check_fuse_panel_access": {
+      "type": "QUESTION",
+      "text": "Can you locate your 12V DC fuse or circuit breaker panel?",
+      "yes": "inspect_fuses",
+      "no": "terminal_cannot_locate_fuses"
+    },
+    "inspect_fuses": {
+      "type": "QUESTION",
+      "text": "Do you see any tripped breakers, blown fuses, or loose fuses?",
+      "yes": "terminal_fuse_issue_identified",
+      "no": "check_symptom_scope"
+    },
+    "check_symptom_scope": {
+      "type": "QUESTION",
+      "text": "Is ALL 12V power out, or only specific items not working?",
+      "yes": "terminal_complete_power_loss",
+      "no": "terminal_partial_power_loss"
+    },
+    "terminal_capability_declined": {
+      "type": "TERMINAL",
+      "result": "User declined diagnostic requirements",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "User not comfortable with diagnostic requirements",
+        "capability_gate": "{{capability_gate.value}}",
+        "recommendations": [
+          "Contact RV technician for on-site diagnosis",
+          "Connect to shore power if available",
+          "Minimize 12V loads until diagnosed"
+        ]
+      }
+    },
+    "terminal_wrong_diagnostic": {
+      "type": "TERMINAL",
+      "result": "Issue does not affect 12V systems",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "12V systems not affected",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "recommendations": [
+          "This diagnostic is for 12V power issues only",
+          "If 120V systems are affected, check shore power connection and main breaker",
+          "Contact technician if unsure which systems are affected"
+        ]
+      }
+    },
+    "terminal_no_battery_access": {
+      "type": "TERMINAL",
+      "result": "Cannot access battery compartment",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Battery compartment not accessible",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "voltage_method": "Inaccessible",
+        "recommendations": [
+          "Battery access required for further diagnosis",
+          "Contact technician for battery compartment access",
+          "Connect to shore power if available",
+          "Minimize 12V usage until diagnosed"
+        ]
+      }
+    },
+    "terminal_attempt_charge_first": {
+      "type": "TERMINAL",
+      "result": "Battery voltage critically low - charging recommended",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Low voltage identified, charging not yet attempted",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "battery_voltage": "{{measure_battery_voltage.value}}",
+        "voltage_method": "Measured",
+        "attempted_charge": false,
+        "recommendations": [
+          "Battery voltage below 11.8V indicates deep discharge",
+          "Connect to shore power or run generator",
+          "Charge for 2-4 hours with 12V loads off",
+          "If voltage does not recover, contact technician for battery evaluation"
+        ]
+      }
+    },
+    "terminal_battery_discharged_attempted_charge": {
+      "type": "TERMINAL",
+      "result": "Battery voltage remains low after charging",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Voltage remains low after charging attempt",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "battery_voltage": "{{measure_battery_voltage.value}}",
+        "voltage_method": "Measured",
+        "attempted_charge": true,
+        "recommendations": [
+          "Voltage remains below 11.8V after charging",
+          "Battery likely at end of service life or charging system fault",
+          "Contact technician for battery replacement or charging system diagnosis",
+          "Keep shore power connected and minimize 12V loads"
+        ]
+      }
+    },
+    "terminal_low_voltage_attempt_charge": {
+      "type": "TERMINAL",
+      "result": "Symptoms suggest low battery voltage - charging recommended",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Symptoms suggest low voltage, charging not attempted",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "voltage_method": "Symptom-based (weak/sluggish behavior)",
+        "symptoms_observed": "{{symptom_based_voltage_check.value}}",
+        "attempted_charge": false,
+        "recommendations": [
+          "Weak or sluggish 12V behavior suggests low battery voltage",
+          "Connect to shore power or run generator",
+          "Charge for 2-4 hours with 12V loads off",
+          "If symptoms persist, contact technician for voltage measurement and diagnosis"
+        ]
+      }
+    },
+    "terminal_low_voltage_attempted_charge": {
+      "type": "TERMINAL",
+      "result": "Symptoms suggest low voltage persists after charging",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Symptoms persist after charging attempt",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "voltage_method": "Symptom-based (weak/sluggish behavior)",
+        "symptoms_observed": "{{symptom_based_voltage_check.value}}",
+        "attempted_charge": true,
+        "recommendations": [
+          "Symptoms persist after charging attempt",
+          "Battery or charging system likely requires professional diagnosis",
+          "Contact technician for voltage measurement and evaluation",
+          "Keep shore power connected and minimize 12V loads"
+        ]
+      }
+    },
+    "terminal_connection_issue_identified": {
+      "type": "TERMINAL",
+      "result": "Battery connection issue observed",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Loose or corroded battery connections observed",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "battery_voltage": "{{measure_battery_voltage.value}}",
+        "voltage_method": "{{check_voltage_access.value}}",
+        "connection_status": "{{check_battery_connections.value}}",
+        "recommendations": [
+          "Battery connections require service",
+          "Contact technician to clean and secure connections",
+          "Take photos before any work",
+          "Avoid high-draw 12V items until serviced"
+        ]
+      }
+    },
+    "terminal_disconnect_switch_off": {
+      "type": "TERMINAL",
+      "result": "Battery disconnect switch found in OFF position",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Battery disconnect switch OFF",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "battery_voltage": "{{measure_battery_voltage.value}}",
+        "voltage_method": "{{check_voltage_access.value}}",
+        "connection_status": "{{check_battery_connections.value}}",
+        "disconnect_switch_status": "{{verify_disconnect_switches.value}}",
+        "recommendations": [
+          "Battery disconnect switch is in OFF position",
+          "Turn switch to ON position to restore 12V power",
+          "If issue persists after switching ON, contact technician",
+          "Switch may have been accidentally toggled or intentionally turned off for storage"
+        ]
+      }
+    },
+    "terminal_fuse_issue_identified": {
+      "type": "TERMINAL",
+      "result": "Blown fuse or tripped breaker observed",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Fuse or breaker issue identified",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "battery_voltage": "{{measure_battery_voltage.value}}",
+        "voltage_method": "{{check_voltage_access.value}}",
+        "connection_status": "{{check_battery_connections.value}}",
+        "disconnect_switch_status": "{{verify_disconnect_switches.value}}",
+        "fuse_panel_status": "{{inspect_fuses.value}}",
+        "recommendations": [
+          "Do not replace fuses or reset breakers without diagnosis",
+          "Turn off all 12V loads",
+          "Take photo of fuse panel",
+          "Contact technician to diagnose overcurrent cause before replacing protection devices"
+        ]
+      }
+    },
+    "terminal_cannot_locate_fuses": {
+      "type": "TERMINAL",
+      "result": "Cannot locate 12V fuse panel",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Fuse panel not located",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "battery_voltage": "{{measure_battery_voltage.value}}",
+        "voltage_method": "{{check_voltage_access.value}}",
+        "connection_status": "{{check_battery_connections.value}}",
+        "disconnect_switch_status": "{{verify_disconnect_switches.value}}",
+        "recommendations": [
+          "Consult owner's manual for fuse panel location",
+          "Contact technician for panel location and inspection",
+          "Connect to shore power if available"
+        ]
+      }
+    },
+    "terminal_complete_power_loss": {
+      "type": "TERMINAL",
+      "result": "Complete 12V power loss - system level issue",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Complete 12V power loss, no obvious cause identified",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "battery_voltage": "{{measure_battery_voltage.value}}",
+        "voltage_method": "{{check_voltage_access.value}}",
+        "connection_status": "{{check_battery_connections.value}}",
+        "disconnect_switch_status": "{{verify_disconnect_switches.value}}",
+        "fuse_panel_status": "{{inspect_fuses.value}}",
+        "symptom_scope": "Complete loss",
+        "recommendations": [
+          "System-level fault likely (isolator, distribution, or ground)",
+          "Connect to shore power if available",
+          "Contact technician immediately for system-level diagnosis",
+          "Specialized knowledge and tools required"
+        ]
+      }
+    },
+    "terminal_partial_power_loss": {
+      "type": "TERMINAL",
+      "result": "Partial 12V power loss - circuit specific issue",
+      "artifact": {
+        "issue": "No 12V power inside RV",
+        "stop_reason": "Partial 12V power loss, circuit-specific fault likely",
+        "systems_affected_12v": "{{clarify_affected_systems.value}}",
+        "systems_affected_120v": "{{check_120v_also_affected.value}}",
+        "power_source_shore": "{{power_context_shore.value}}",
+        "power_source_generator": "{{power_context_generator.value}}",
+        "power_source_solar": "{{power_context_solar.value}}",
+        "battery_voltage": "{{measure_battery_voltage.value}}",
+        "voltage_method": "{{check_voltage_access.value}}",
+        "connection_status": "{{check_battery_connections.value}}",
+        "disconnect_switch_status": "{{verify_disconnect_switches.value}}",
+        "fuse_panel_status": "{{inspect_fuses.value}}",
+        "symptom_scope": "Partial loss",
+        "recommendations": [
+          "Document which specific items are affected",
+          "Likely hidden blown fuse or circuit-specific fault",
+          "Contact technician for circuit tracing and fuse testing",
+          "Avoid overloading working circuits"
+        ]
+      }
+    }
+  }
+}

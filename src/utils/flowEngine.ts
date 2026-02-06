@@ -6,7 +6,7 @@ import {
   SessionSummary,
 } from '../types';
 import { StorageService } from './StorageService';
-import { FlowValidator, FlowValidationError } from './flowValidator';
+import { FlowValidator, FlowValidationError } from './FlowValidator';
 
 export class FlowEngineError extends Error {
   constructor(message: string) {

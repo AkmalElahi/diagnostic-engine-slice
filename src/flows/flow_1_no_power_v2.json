@@ -1,0 +1,315 @@
+{
+  "flowId": "flow_1_no_power_inside_rv",
+  "flowVersion": "2.0",
+  "title": "No Power Inside RV",
+  "startNode": "capability_gate",
+  "nodes": {
+    "capability_gate": {
+      "type": "QUESTION",
+      "text": "You may need to visually check panels, switches, or displays, and operate existing switches.\nYou will not be asked to repair anything, remove panels, or use tools.\nAre you comfortable continuing?",
+      "answers": {
+        "yes": "safety_electrical_hazard_check",
+        "no": "terminal_capability_declined"
+      }
+    },
+    "safety_electrical_hazard_check": {
+      "type": "SAFETY",
+      "text": "If you see smoke, sparks, melted wiring, water near electrical components,\nor smell burning plastic or insulation, stop immediately.\nDisconnect from power only if it can be done safely.\nTap Continue only if none of these conditions are present.",
+      "next": "system_scope_12v_check"
+    },
+    "system_scope_12v_check": {
+      "type": "QUESTION",
+      "text": "Are 12V systems affected? Examples include lights, fans, water pump, and control panels.",
+      "answers": {
+        "yes": "ac_cross_check",
+        "no": "terminal_ac_only_issue_suspected"
+      }
+    },
+    "ac_cross_check": {
+      "type": "QUESTION",
+      "text": "Are 120V systems also affected? Examples include outlets, microwave, and air conditioner.",
+      "answers": {
+        "yes": "power_source_context",
+        "no": "power_source_context"
+      }
+    },
+    "power_source_context": {
+      "type": "QUESTION",
+      "text": "Which power sources are currently connected or active?",
+      "answers": {
+        "shore_power": "safety_power_disconnect",
+        "generator": "safety_power_disconnect",
+        "solar": "voltage_access_check",
+        "battery_only": "voltage_access_check"
+      }
+    },
+    "safety_power_disconnect": {
+      "type": "SAFETY",
+      "text": "If you are connected to shore power or a generator, disconnect only if you are comfortable\nand it can be done safely. Do not open electrical panels.\nTap Continue once disconnected or if not applicable.",
+      "next": "voltage_access_check"
+    },
+    "voltage_access_check": {
+      "type": "QUESTION",
+      "text": "Can you see a battery voltage reading on any display?\nThis may be on a monitor panel, inverter screen, or battery display.",
+      "answers": {
+        "yes": "measure_battery_voltage",
+        "no": "symptom_based_fallback"
+      }
+    },
+    "measure_battery_voltage": {
+      "type": "MEASURE",
+      "text": "Enter the battery voltage in volts if visible.",
+      "unit": "volts",
+      "validRange": {
+        "min": 10.0,
+        "max": 15.0
+      },
+      "branches": [
+        {
+          "condition": "< 11.8",
+          "next": "charging_response_check"
+        },
+        {
+          "condition": ">= 11.8",
+          "next": "battery_connection_observation"
+        }
+      ]
+    },
+    "charging_response_check": {
+      "type": "QUESTION",
+      "text": "If connected to shore power or a generator, does the battery voltage increase after about 10 minutes?",
+      "answers": {
+        "yes": "battery_connection_observation",
+        "no": "terminal_charging_system_not_raising_voltage",
+        "not_sure": "terminal_low_voltage_identified"
+      }
+    },
+    "symptom_based_fallback": {
+      "type": "QUESTION",
+      "text": "Do 12V items appear weak or sluggish, such as dim lights or slow fans?",
+      "answers": {
+        "yes": "battery_connection_observation",
+        "no": "disconnect_switch_check"
+      }
+    },
+    "battery_connection_observation": {
+      "type": "QUESTION",
+      "text": "Do battery cables appear visually secure and free of heavy corrosion?",
+      "answers": {
+        "yes": "disconnect_switch_check",
+        "no": "terminal_battery_connection_issue_observed"
+      }
+    },
+    "disconnect_switch_check": {
+      "type": "QUESTION",
+      "text": "Can you locate battery disconnect switches, often near the entry door or battery compartment?",
+      "answers": {
+        "yes": "disconnect_position_check",
+        "no": "fuse_panel_access"
+      }
+    },
+    "disconnect_position_check": {
+      "type": "QUESTION",
+      "text": "Are all battery disconnect switches in the ON position?",
+      "answers": {
+        "yes": "fuse_panel_access",
+        "no": "terminal_disconnect_switch_off"
+      }
+    },
+    "fuse_panel_access": {
+      "type": "QUESTION",
+      "text": "Can you locate the 12V fuse or breaker panel?",
+      "answers": {
+        "yes": "fuse_visual_check",
+        "no": "scope_check"
+      }
+    },
+    "fuse_visual_check": {
+      "type": "QUESTION",
+      "text": "Do you see any tripped breakers or blown fuses?",
+      "answers": {
+        "yes": "terminal_fuse_or_breaker_issue_observed",
+        "no": "scope_check"
+      }
+    },
+    "scope_check": {
+      "type": "QUESTION",
+      "text": "Is all 12V power out, or only specific items?",
+      "answers": {
+        "all_12v_power_out": "terminal_complete_12v_power_loss",
+        "only_specific_items": "terminal_partial_12v_power_loss"
+      }
+    },
+    "terminal_capability_declined": {
+      "type": "TERMINAL",
+      "result": "Capability Declined",
+      "artifact": {
+        "issue": "Capability Declined",
+        "flow_id": "flow_1_no_power_inside_rv",
+        "flow_version": "2.0",
+        "stop_reason": "Capability Declined",
+        "last_confirmed_state": "Capability Declined",
+        "power_source_context": "Unknown",
+        "voltage_known": "Unknown",
+        "voltage_value": null,
+        "charging_response": "Unknown",
+        "disconnect_status": "Unknown",
+        "battery_connection_observation": "Unknown",
+        "fuse_panel_status": "Unknown",
+        "safety_notes": ""
+      }
+    },
+    "terminal_ac_only_issue_suspected": {
+      "type": "TERMINAL",
+      "result": "AC-Only Issue Suspected",
+      "artifact": {
+        "issue": "AC-Only Issue Suspected",
+        "flow_id": "flow_1_no_power_inside_rv",
+        "flow_version": "2.0",
+        "stop_reason": "AC-Only Issue Suspected",
+        "last_confirmed_state": "AC-Only Issue Suspected",
+        "power_source_context": "Unknown",
+        "voltage_known": "Unknown",
+        "voltage_value": null,
+        "charging_response": "Unknown",
+        "disconnect_status": "Unknown",
+        "battery_connection_observation": "Unknown",
+        "fuse_panel_status": "Unknown",
+        "safety_notes": ""
+      }
+    },
+    "terminal_low_voltage_identified": {
+      "type": "TERMINAL",
+      "result": "Low Voltage Identified",
+      "artifact": {
+        "issue": "Low Voltage Identified",
+        "flow_id": "flow_1_no_power_inside_rv",
+        "flow_version": "2.0",
+        "stop_reason": "Low Voltage Identified",
+        "last_confirmed_state": "Low Voltage Identified",
+        "power_source_context": "{{power_source_context.value}}",
+        "voltage_known": "Yes",
+        "voltage_value": "{{measure_battery_voltage.value}}",
+        "charging_response": "Unknown",
+        "disconnect_status": "Unknown",
+        "battery_connection_observation": "Unknown",
+        "fuse_panel_status": "Unknown",
+        "safety_notes": ""
+      }
+    },
+    "terminal_charging_system_not_raising_voltage": {
+      "type": "TERMINAL",
+      "result": "Charging System Not Raising Voltage",
+      "artifact": {
+        "issue": "Charging System Not Raising Voltage",
+        "flow_id": "flow_1_no_power_inside_rv",
+        "flow_version": "2.0",
+        "stop_reason": "Charging System Not Raising Voltage",
+        "last_confirmed_state": "Charging System Not Raising Voltage",
+        "power_source_context": "{{power_source_context.value}}",
+        "voltage_known": "Yes",
+        "voltage_value": "{{measure_battery_voltage.value}}",
+        "charging_response": "No",
+        "disconnect_status": "Unknown",
+        "battery_connection_observation": "Unknown",
+        "fuse_panel_status": "Unknown",
+        "safety_notes": ""
+      }
+    },
+    "terminal_battery_connection_issue_observed": {
+      "type": "TERMINAL",
+      "result": "Battery Connection Issue Observed",
+      "artifact": {
+        "issue": "Battery Connection Issue Observed",
+        "flow_id": "flow_1_no_power_inside_rv",
+        "flow_version": "2.0",
+        "stop_reason": "Battery Connection Issue Observed",
+        "last_confirmed_state": "Battery Connection Issue Observed",
+        "power_source_context": "{{power_source_context.value}}",
+        "voltage_known": "{{voltage_access_check.value}}",
+        "voltage_value": "{{measure_battery_voltage.value}}",
+        "charging_response": "Unknown",
+        "disconnect_status": "Unknown",
+        "battery_connection_observation": "Battery Connection Issue Observed",
+        "fuse_panel_status": "Unknown",
+        "safety_notes": ""
+      }
+    },
+    "terminal_disconnect_switch_off": {
+      "type": "TERMINAL",
+      "result": "Disconnect Switch Off",
+      "artifact": {
+        "issue": "Disconnect Switch Off",
+        "flow_id": "flow_1_no_power_inside_rv",
+        "flow_version": "2.0",
+        "stop_reason": "Disconnect Switch Off",
+        "last_confirmed_state": "Disconnect Switch Off",
+        "power_source_context": "{{power_source_context.value}}",
+        "voltage_known": "{{voltage_access_check.value}}",
+        "voltage_value": "{{measure_battery_voltage.value}}",
+        "charging_response": "Unknown",
+        "disconnect_status": "Off",
+        "battery_connection_observation": "{{battery_connection_observation.value}}",
+        "fuse_panel_status": "Unknown",
+        "safety_notes": ""
+      }
+    },
+    "terminal_fuse_or_breaker_issue_observed": {
+      "type": "TERMINAL",
+      "result": "Fuse or Breaker Issue Observed",
+      "artifact": {
+        "issue": "Fuse or Breaker Issue Observed",
+        "flow_id": "flow_1_no_power_inside_rv",
+        "flow_version": "2.0",
+        "stop_reason": "Fuse or Breaker Issue Observed",
+        "last_confirmed_state": "Fuse or Breaker Issue Observed",
+        "power_source_context": "{{power_source_context.value}}",
+        "voltage_known": "{{voltage_access_check.value}}",
+        "voltage_value": "{{measure_battery_voltage.value}}",
+        "charging_response": "Unknown",
+        "disconnect_status": "{{disconnect_position_check.value}}",
+        "battery_connection_observation": "{{battery_connection_observation.value}}",
+        "fuse_panel_status": "Fuse or Breaker Issue Observed",
+        "safety_notes": ""
+      }
+    },
+    "terminal_complete_12v_power_loss": {
+      "type": "TERMINAL",
+      "result": "Complete 12V Power Loss",
+      "artifact": {
+        "issue": "Complete 12V Power Loss",
+        "flow_id": "flow_1_no_power_inside_rv",
+        "flow_version": "2.0",
+        "stop_reason": "Complete 12V Power Loss",
+        "last_confirmed_state": "Complete 12V Power Loss",
+        "power_source_context": "{{power_source_context.value}}",
+        "voltage_known": "{{voltage_access_check.value}}",
+        "voltage_value": "{{measure_battery_voltage.value}}",
+        "charging_response": "{{charging_response_check.value}}",
+        "disconnect_status": "{{disconnect_position_check.value}}",
+        "battery_connection_observation": "{{battery_connection_observation.value}}",
+        "fuse_panel_status": "{{fuse_visual_check.value}}",
+        "safety_notes": ""
+      }
+    },
+    "terminal_partial_12v_power_loss": {
+      "type": "TERMINAL",
+      "result": "Partial 12V Power Loss",
+      "artifact": {
+        "issue": "Partial 12V Power Loss",
+        "flow_id": "flow_1_no_power_inside_rv",
+        "flow_version": "2.0",
+        "stop_reason": "Partial 12V Power Loss",
+        "last_confirmed_state": "Partial 12V Power Loss",
+        "power_source_context": "{{power_source_context.value}}",
+        "voltage_known": "{{voltage_access_check.value}}",
+        "voltage_value": "{{measure_battery_voltage.value}}",
+        "charging_response": "{{charging_response_check.value}}",
+        "disconnect_status": "{{disconnect_position_check.value}}",
+        "battery_connection_observation": "{{battery_connection_observation.value}}",
+        "fuse_panel_status": "{{fuse_visual_check.value}}",
+        "safety_notes": ""
+      }
+    }
+  }
+}

@@ -1,0 +1,708 @@
+{
+  "flowId": "flow_2_water_system_issue",
+  "flowVersion": "1.0",
+  "title": "Water System Issue",
+  "startNode": "capability_gate_water",
+  "nodes": {
+    "capability_gate_water": {
+      "type": "QUESTION",
+      "text": "You may need to check simple water controls, valves, and indicator panels. Are you comfortable proceeding?",
+      "answers": {
+        "yes": "clarify_water_source",
+        "no": "terminal_capability_declined"
+      }
+    },
+    "clarify_water_source": {
+      "type": "QUESTION",
+      "text": "Right now, are you using city water (hose connected to campground spigot) or your fresh tank and pump?",
+      "info": "Quick fact: City water is pressurized by the campground, the RV pump is usually OFF on city water. The fresh tank pump pressurizes your system only when you are not on city water. You can skip this and keep moving.",
+      "answers": {
+        "city_water": "city_source_check",
+        "fresh_tank_and_pump": "tank_level_check",
+        "not_sure": "not_sure_prompt"
+      }
+    },
+    "not_sure_prompt": {
+      "type": "QUESTION",
+      "text": "Is a water hose connected to your RV and the campground spigot right now?",
+      "answers": {
+        "yes": "city_source_check",
+        "no": "tank_level_check"
+      }
+    },
+    "city_source_check": {
+      "type": "QUESTION",
+      "text": "At the campground spigot, is the water turned ON and does it appear to have pressure?",
+      "answers": {
+        "yes": "city_hose_kink_check",
+        "no": "terminal_city_spigot_off_or_no_pressure",
+        "not_sure": "city_spigot_test_prompt"
+      }
+    },
+    "city_spigot_test_prompt": {
+      "type": "QUESTION",
+      "text": "If you have a small faucet at the spigot, can you confirm water comes out there?",
+      "answers": {
+        "yes": "city_hose_kink_check",
+        "no": "terminal_city_spigot_off_or_no_pressure",
+        "cannot_test_safely": "terminal_city_spigot_uncertain"
+      }
+    },
+    "city_hose_kink_check": {
+      "type": "QUESTION",
+      "text": "Is your city water hose free of kinks and fully connected at both ends?",
+      "answers": {
+        "yes": "city_inlet_check",
+        "no": "safety_city_hose_issue",
+        "not_sure": "city_inlet_check"
+      }
+    },
+    "safety_city_hose_issue": {
+      "type": "SAFETY",
+      "text": "STOP: Hose or connection issue observed. Turn off the spigot before adjusting anything. Keep electrical cords away from water.",
+      "next": "terminal_city_hose_issue_observed"
+    },
+    "city_inlet_check": {
+      "type": "QUESTION",
+      "text": "At your RV city water inlet, do you see any obvious leak or spraying water when the spigot is on?",
+      "answers": {
+        "yes": "safety_city_inlet_leak",
+        "no": "city_symptom_scope"
+      }
+    },
+    "safety_city_inlet_leak": {
+      "type": "SAFETY",
+      "text": "STOP: Leak or spraying water observed at inlet. Turn off the spigot immediately to prevent flooding.",
+      "next": "terminal_city_inlet_leak_observed"
+    },
+    "city_symptom_scope": {
+      "type": "QUESTION",
+      "text": "On city water, is it no water everywhere, or low water and weak flow?",
+      "answers": {
+        "no_water_anywhere": "city_valve_mode_check",
+        "low_flow_everywhere": "city_filter_regulator_check",
+        "only_some_fixtures_affected": "terminal_city_partial_fixture_issue"
+      }
+    },
+    "city_valve_mode_check": {
+      "type": "QUESTION",
+      "text": "Do you have a docking station or utility panel with a water mode setting (city, tank fill, normal, winterize)?",
+      "answers": {
+        "yes": "city_mode_position_check",
+        "no": "pump_switch_check_city",
+        "not_sure": "pump_switch_check_city"
+      }
+    },
+    "city_mode_position_check": {
+      "type": "QUESTION",
+      "text": "Is the water mode set to NORMAL or CITY, not TANK FILL and not WINTERIZE?",
+      "answers": {
+        "yes": "pump_switch_check_city",
+        "no": "terminal_water_mode_not_normal",
+        "not_sure": "pump_switch_check_city"
+      }
+    },
+    "city_filter_regulator_check": {
+      "type": "QUESTION",
+      "text": "Do you have a pressure regulator at the spigot, or an inline water filter on the hose?",
+      "answers": {
+        "yes": "terminal_city_low_flow_with_regulator_or_filter",
+        "no": "terminal_city_low_flow_no_regulator_filter",
+        "not_sure": "terminal_city_low_flow_unknown_regulator_filter"
+      }
+    },
+    "pump_switch_check_city": {
+      "type": "QUESTION",
+      "text": "While on city water, is your RV water pump switch OFF?",
+      "answers": {
+        "yes": "terminal_city_no_water_system_level",
+        "no": "terminal_city_pump_on_note",
+        "not_sure": "terminal_city_no_water_system_level"
+      }
+    },
+    "tank_level_check": {
+      "type": "QUESTION",
+      "text": "Does your fresh tank level show water present?",
+      "answers": {
+        "yes": "pump_switch_check_tank",
+        "no": "terminal_tank_empty",
+        "not_sure": "tank_air_spit_check"
+      }
+    },
+    "tank_air_spit_check": {
+      "type": "QUESTION",
+      "text": "When you open a faucet, do you get air spitting or any water at all?",
+      "answers": {
+        "air_spitting": "terminal_tank_low_or_air_in_lines",
+        "some_water": "pump_switch_check_tank",
+        "nothing": "pump_switch_check_tank"
+      }
+    },
+    "pump_switch_check_tank": {
+      "type": "QUESTION",
+      "text": "Is your water pump switch ON? Some RVs have more than one pump switch.",
+      "answers": {
+        "yes": "pump_sound_check",
+        "no": "terminal_pump_switch_off",
+        "not_sure": "terminal_pump_switch_unknown"
+      }
+    },
+    "pump_sound_check": {
+      "type": "QUESTION",
+      "text": "When you open a faucet, do you hear the water pump running?",
+      "answers": {
+        "yes": "pump_behavior_check",
+        "no": "pump_fuse_check",
+        "not_sure": "pump_fuse_check"
+      }
+    },
+    "pump_behavior_check": {
+      "type": "QUESTION",
+      "text": "When the faucet is closed, does the pump stop within about 10 seconds?",
+      "answers": {
+        "yes": "terminal_pump_runs_but_no_flow",
+        "no": "terminal_pump_runs_continuously_or_cycles",
+        "not_sure": "terminal_pump_runs_continuously_or_cycles"
+      }
+    },
+    "pump_fuse_check": {
+      "type": "QUESTION",
+      "text": "Can you locate the water pump fuse or breaker on your 12V fuse panel?",
+      "answers": {
+        "yes": "pump_fuse_observed",
+        "no": "terminal_pump_fuse_not_found"
+      }
+    },
+    "pump_fuse_observed": {
+      "type": "QUESTION",
+      "text": "Do you see a blown pump fuse or a tripped pump breaker?",
+      "answers": {
+        "yes": "terminal_pump_fuse_or_breaker_issue",
+        "no": "terminal_pump_not_running_needs_tech",
+        "not_sure": "terminal_pump_not_running_needs_tech"
+      }
+    },
+    "terminal_capability_declined": {
+      "type": "TERMINAL",
+      "result": "User declined diagnostic requirements",
+      "summary": "Pause diagnosis, minimize water usage, and schedule a technician. If you suspect a leak, turn the pump OFF and shut off the city spigot.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "User not comfortable proceeding",
+        "last_confirmed_state": "Declined capability gate",
+        "water_path": "Unknown",
+        "symptom_scope": "Unknown",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Minimize water usage",
+          "Schedule technician",
+          "If leak suspected: turn pump OFF and shut off city spigot"
+        ]
+      }
+    },
+    "terminal_city_spigot_off_or_no_pressure": {
+      "type": "TERMINAL",
+      "result": "City water source not providing pressure",
+      "summary": "Turn off the spigot, relieve hose pressure, and avoid leaving the hose pressurized unattended.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "No pressure at campground spigot",
+        "last_confirmed_state": "City water path, no spigot pressure",
+        "water_path": "City water",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "No",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Turn off the spigot",
+          "Relieve hose pressure",
+          "Do not leave hose pressurized unattended"
+        ]
+      }
+    },
+    "terminal_city_spigot_uncertain": {
+      "type": "TERMINAL",
+      "result": "Cannot safely test campground spigot pressure",
+      "summary": "Stop diagnosis and contact campground staff to verify water service.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "User cannot verify spigot pressure safely",
+        "last_confirmed_state": "City water path, spigot status uncertain",
+        "water_path": "City water",
+        "symptom_scope": "Unknown",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Contact campground staff to verify water service"
+        ]
+      }
+    },
+    "terminal_city_hose_issue_observed": {
+      "type": "TERMINAL",
+      "result": "City water hose or connection issue observed",
+      "summary": "Turn off the spigot before adjusting anything. Keep electrical cords away from water.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Hose kinked or loose connection",
+        "last_confirmed_state": "City water path, hose issue observed",
+        "water_path": "City water",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Yes",
+        "hose_condition": "Kinked or loose",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Turn off spigot before adjusting",
+          "Keep electrical cords away from water"
+        ]
+      }
+    },
+    "terminal_city_inlet_leak_observed": {
+      "type": "TERMINAL",
+      "result": "Leak observed at city water inlet",
+      "summary": "Turn off the spigot immediately to prevent flooding. Use fresh tank and pump if available.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Water spraying or leaking at inlet",
+        "last_confirmed_state": "City water path, leak at inlet",
+        "water_path": "City water",
+        "symptom_scope": "Leak observed",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Yes",
+        "hose_condition": "OK",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Turn off spigot immediately",
+          "Use fresh tank and pump if available"
+        ]
+      }
+    },
+    "terminal_water_mode_not_normal": {
+      "type": "TERMINAL",
+      "result": "Water mode setting not in normal position",
+      "summary": "Do not force valves. If unsure, stop and capture photos for a technician.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Docking station or valve mode not set to NORMAL or CITY",
+        "last_confirmed_state": "City water path, water mode incorrect",
+        "water_path": "City water",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Yes",
+        "hose_condition": "OK",
+        "water_mode_setting": "Not NORMAL or CITY",
+        "stabilization_actions": [
+          "Do not force valves",
+          "Capture photos for technician"
+        ]
+      }
+    },
+    "terminal_city_low_flow_with_regulator_or_filter": {
+      "type": "TERMINAL",
+      "result": "Low flow likely due to regulator, filter, or campground pressure",
+      "summary": "If flow is usable, conserve water and avoid running multiple fixtures at once.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Low flow everywhere on city water",
+        "last_confirmed_state": "City water path, low flow with regulator or filter",
+        "water_path": "City water",
+        "symptom_scope": "Low flow everywhere",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Yes",
+        "hose_condition": "OK",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Conserve water",
+          "Avoid running multiple fixtures at once"
+        ]
+      }
+    },
+    "terminal_city_low_flow_no_regulator_filter": {
+      "type": "TERMINAL",
+      "result": "Low flow on city water, no regulator or filter present",
+      "summary": "Check campground pressure at spigot. If low everywhere, contact campground management.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Low flow without obvious external cause",
+        "last_confirmed_state": "City water path, low flow without regulator or filter",
+        "water_path": "City water",
+        "symptom_scope": "Low flow everywhere",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Yes",
+        "hose_condition": "OK",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Check campground pressure",
+          "Contact campground management if low"
+        ]
+      }
+    },
+    "terminal_city_low_flow_unknown_regulator_filter": {
+      "type": "TERMINAL",
+      "result": "Low flow on city water, regulator or filter status unknown",
+      "summary": "Schedule technician to inspect water system and identify restriction.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Cannot identify external restriction",
+        "last_confirmed_state": "City water path, low flow, restriction unknown",
+        "water_path": "City water",
+        "symptom_scope": "Low flow everywhere",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Yes",
+        "hose_condition": "OK",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Schedule technician to inspect water system"
+        ]
+      }
+    },
+    "terminal_city_partial_fixture_issue": {
+      "type": "TERMINAL",
+      "result": "Only some fixtures affected on city water",
+      "summary": "Use working fixtures. Schedule technician to inspect affected fixture aerators or valves.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Fixture-specific issue, not system-wide",
+        "last_confirmed_state": "City water path, partial fixture issue",
+        "water_path": "City water",
+        "symptom_scope": "Only some fixtures affected",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Yes",
+        "hose_condition": "OK",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Use working fixtures",
+          "Schedule technician for fixture inspection"
+        ]
+      }
+    },
+    "terminal_city_pump_on_note": {
+      "type": "TERMINAL",
+      "result": "Pump switch ON while on city water",
+      "summary": "Turn pump OFF if comfortable. If you are not sure, stop and capture the current state for a technician.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Pump switch not OFF during city water use",
+        "last_confirmed_state": "City water path, pump switch ON",
+        "water_path": "City water",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "On",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Yes",
+        "hose_condition": "OK",
+        "water_mode_setting": "NORMAL or CITY",
+        "stabilization_actions": [
+          "Turn pump OFF if comfortable",
+          "Capture current state for technician if uncertain"
+        ]
+      }
+    },
+    "terminal_city_no_water_system_level": {
+      "type": "TERMINAL",
+      "result": "City water path likely has a blockage or check valve issue",
+      "summary": "Turn off the spigot when away. Use fresh tank and pump if available.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "City pressure present, no water at fixtures",
+        "last_confirmed_state": "City water path, system-level blockage suspected",
+        "water_path": "City water",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "Off or Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Unknown",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Yes",
+        "hose_condition": "OK",
+        "water_mode_setting": "NORMAL or CITY",
+        "stabilization_actions": [
+          "Turn off spigot when away",
+          "Use fresh tank and pump if available"
+        ]
+      }
+    },
+    "terminal_tank_empty": {
+      "type": "TERMINAL",
+      "result": "Fresh tank empty",
+      "summary": "Turn pump OFF to avoid running it dry.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Fresh tank shows empty",
+        "last_confirmed_state": "Fresh tank and pump path, tank empty",
+        "water_path": "Fresh tank and pump",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Yes",
+        "tank_level_status": "Empty",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Turn pump OFF to avoid running dry"
+        ]
+      }
+    },
+    "terminal_tank_low_or_air_in_lines": {
+      "type": "TERMINAL",
+      "result": "Fresh tank low or air entering the pump",
+      "summary": "Turn pump OFF if it is rapidly cycling, and conserve remaining water.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Air spitting observed",
+        "last_confirmed_state": "Fresh tank and pump path, air in lines",
+        "water_path": "Fresh tank and pump",
+        "symptom_scope": "Air spitting",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "No",
+        "tank_level_status": "Unknown",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Turn pump OFF if rapidly cycling",
+          "Conserve remaining water"
+        ]
+      }
+    },
+    "terminal_pump_switch_off": {
+      "type": "TERMINAL",
+      "result": "Pump switch OFF",
+      "summary": "Locate pump switch and verify position before proceeding.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Pump switch not ON",
+        "last_confirmed_state": "Fresh tank and pump path, pump switch OFF",
+        "water_path": "Fresh tank and pump",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "Off",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Yes",
+        "tank_level_status": "Has water",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Locate pump switch and verify position"
+        ]
+      }
+    },
+    "terminal_pump_switch_unknown": {
+      "type": "TERMINAL",
+      "result": "Pump switch status unknown",
+      "summary": "Consult owner manual or schedule technician to locate pump controls.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "User unsure of pump switch location",
+        "last_confirmed_state": "Fresh tank and pump path, pump switch unknown",
+        "water_path": "Fresh tank and pump",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "Unknown",
+        "pump_sound": "Unknown",
+        "tank_level_known": "Yes",
+        "tank_level_status": "Has water",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Consult owner manual",
+          "Schedule technician to locate pump controls"
+        ]
+      }
+    },
+    "terminal_pump_fuse_not_found": {
+      "type": "TERMINAL",
+      "result": "Pump not running, fuse panel not located",
+      "summary": "Schedule technician to diagnose pump electrical issue.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Cannot locate 12V fuse panel",
+        "last_confirmed_state": "Fresh tank and pump path, fuse panel not found",
+        "water_path": "Fresh tank and pump",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "On",
+        "pump_sound": "Silent",
+        "tank_level_known": "Yes",
+        "tank_level_status": "Has water",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Schedule technician for electrical diagnosis"
+        ]
+      }
+    },
+    "terminal_pump_fuse_or_breaker_issue": {
+      "type": "TERMINAL",
+      "result": "Pump fuse blown or breaker tripped",
+      "summary": "Do not reset breaker or replace fuse. Schedule technician to diagnose why protection device activated.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Protection device indicates fault",
+        "last_confirmed_state": "Fresh tank and pump path, fuse blown or breaker tripped",
+        "water_path": "Fresh tank and pump",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "On",
+        "pump_sound": "Silent",
+        "tank_level_known": "Yes",
+        "tank_level_status": "Has water",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Do not reset breaker or replace fuse",
+          "Schedule technician to diagnose fault"
+        ]
+      }
+    },
+    "terminal_pump_not_running_needs_tech": {
+      "type": "TERMINAL",
+      "result": "Pump not running, requires diagnosis",
+      "summary": "Schedule technician to diagnose pump electrical or mechanical failure.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Pump silent with switch ON",
+        "last_confirmed_state": "Fresh tank and pump path, pump not running",
+        "water_path": "Fresh tank and pump",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "On",
+        "pump_sound": "Silent",
+        "tank_level_known": "Yes",
+        "tank_level_status": "Has water",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Schedule technician for pump diagnosis"
+        ]
+      }
+    },
+    "terminal_pump_runs_but_no_flow": {
+      "type": "TERMINAL",
+      "result": "Pump runs but water flow not restored",
+      "summary": "Turn pump OFF when not actively testing to avoid damage or leaks.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Pump runs, stops normally, but water still not flowing",
+        "last_confirmed_state": "Fresh tank and pump path, pump runs but no flow",
+        "water_path": "Fresh tank and pump",
+        "symptom_scope": "No water everywhere",
+        "pump_switch_status": "On",
+        "pump_sound": "Runs",
+        "tank_level_known": "Yes",
+        "tank_level_status": "Has water",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Turn pump OFF when not testing",
+          "Schedule technician for blockage diagnosis"
+        ]
+      }
+    },
+    "terminal_pump_runs_continuously_or_cycles": {
+      "type": "TERMINAL",
+      "result": "Pump behavior suggests leak, restriction, or pressure issue",
+      "summary": "Turn pump OFF when not in use. Check for visible leaks under the RV.",
+      "artifact": {
+        "issue": "Water system issue",
+        "flow_id": "flow_2_water_system_issue",
+        "flow_version": "1.0",
+        "stop_reason": "Pump does not stop or cycles unexpectedly",
+        "last_confirmed_state": "Fresh tank and pump path, pump cycling abnormally",
+        "water_path": "Fresh tank and pump",
+        "symptom_scope": "Pump cycling issue",
+        "pump_switch_status": "On",
+        "pump_sound": "Runs",
+        "tank_level_known": "Yes",
+        "tank_level_status": "Has water",
+        "city_spigot_pressure": "Unknown",
+        "hose_condition": "Unknown",
+        "water_mode_setting": "Unknown",
+        "stabilization_actions": [
+          "Turn pump OFF when not in use",
+          "Check for visible leaks under RV",
+          "Schedule technician for pressure system diagnosis"
+        ]
+      }
+    }
+  }
+}
