@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { FlowEngine, FlowEngineError } from './src/utils/FlowEngine';
-import { FlowDefinition, SessionState, SessionSummary } from './src/types';
+import { FlowDefinition, MeasureNode, QuestionNode, SafetyNode, SessionState, SessionSummary, TerminalNode } from './src/types';
 import { QuestionNodeComponent } from './src/components/QuestionNodeComponent';
 import { SafetyNodeComponent } from './src/components/SafetyNodeComponent';
 import { MeasureNodeComponent } from './src/components/MeasureNodeComponent';
@@ -21,17 +21,33 @@ import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { StorageService } from './src/utils/StorageService';
 import { FlowValidationError } from './src/utils/FlowValidator';
 
-import no_power_issue from './src/flows/flow_1_no_power.json';
-import { demonstrateDeterminism } from './src/tests/determinism-demo';
-import { demonstrateValidation } from './src/tests/validation-demo';
+import no_power_issue from './src/flows/flow_1_no_power_v2.json';
+import water_system_issue from './src/flows/flow_2_water_system_v2.json';
+import propane_system_issue from './src/flows/flow_3_propane_system_issue.json';
+import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue.json';
 
 type ViewMode = 'flow-select' | 'diagnostic' | 'history';
 
 const AVAILABLE_FLOWS = [
   {
     flow: no_power_issue as FlowDefinition,
-    name: '12V Power Diagnostic',
-    description: 'Diagnose 12V power issues in RV electrical system',
+    name: 'No Power Inside RV',
+    description: 'Diagnose 12V and AC power issues in your RV electrical system.',
+  },
+  {
+    flow: water_system_issue as FlowDefinition,
+    name: 'Water System Issue',
+    description: 'Diagnose city water and fresh tank water system problems.',
+  },
+  {
+    flow: propane_system_issue as FlowDefinition,
+    name: 'Propane System Issue',
+    description: 'Diagnose propane supply, valves, and appliance issues.',
+  },
+  {
+    flow: slides_leveling_issue as FlowDefinition,
+    name: 'Slides and Leveling Systems',
+    description: 'Diagnose slide-out movement and leveling system issues.',
   },
 ];
 
@@ -40,60 +56,46 @@ const isIOS = Platform.OS === 'ios';
 export default function App() {
   const [flowEngine, setFlowEngine] = useState<FlowEngine | null>(null);
   const [sessionState, setSessionState] = useState<SessionState | null>(null);
-  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(
-    null
-  );
+  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('flow-select');
   const [history, setHistory] = useState<SessionSummary[]>([]);
 
-  // useEffect(() => {
-  //   // Run once on app start
-  //   setTimeout(() => {
-  //     demonstrateDeterminism();
-  //     demonstrateValidation();
-  //   }, 1000);
-  // }, []);
-
   useEffect(() => {
     loadHistory();
-
-    const existingSession = StorageService.loadSessionState();
-    if (existingSession) {
-      try {
-        const matchingFlow = AVAILABLE_FLOWS.find(
-          (f) => f.flow.flow_id === existingSession.flow_id
-        );
-
-        if (matchingFlow) {
-          const engine = new FlowEngine(matchingFlow.flow);
-          setFlowEngine(engine);
-          setSessionState(existingSession);
-          setViewMode('diagnostic');
-
-          if (existingSession.completed) {
-            const summary: SessionSummary = {
-              flow_id: existingSession.flow_id,
-              flow_version: existingSession.flow_version,
-              session_id: existingSession.session_id,
-              started_at: existingSession.started_at,
-              completed_at: existingSession.completed_at!,
-              events: existingSession.events,
-              terminal_node_id: existingSession.terminal_node_id!,
-              result: existingSession.result!,
-            };
-            setSessionSummary(summary);
-          }
-        }
-      } catch (err) {
-        StorageService.clearSessionState();
-      }
-    }
+    restoreSession();
   }, []);
 
-  const loadHistory = () => {
-    const loadedHistory = FlowEngine.getHistory();
-    setHistory(loadedHistory);
+  // ─── Session restore ────────────────────────────────────────────────────────
+
+  const restoreSession = () => {
+    const existing = StorageService.loadSessionState();
+    if (!existing) return;
+
+    // Only restore in-progress sessions
+    if (existing.completed || existing.stopped) return;
+
+    try {
+      const matchingFlow = AVAILABLE_FLOWS.find(
+        f => f.flow.flowId === existing.flow_id
+      );
+      if (!matchingFlow) return;
+
+      const engine = new FlowEngine(matchingFlow.flow);
+      setFlowEngine(engine);
+      setSessionState(existing);
+      setViewMode('diagnostic');
+    } catch {
+      StorageService.clearSessionState();
+    }
   };
+
+  // ─── History ────────────────────────────────────────────────────────────────
+
+  const loadHistory = () => {
+    setHistory(FlowEngine.getHistory());
+  };
+
+  // ─── Flow selection ─────────────────────────────────────────────────────────
 
   const handleSelectFlow = (flow: FlowDefinition) => {
     try {
@@ -111,39 +113,43 @@ export default function App() {
     }
   };
 
+  // ─── Session management ─────────────────────────────────────────────────────
+
   const startNewSession = (engine?: FlowEngine) => {
     try {
-      const currentEngine = engine || flowEngine;
-      if (!currentEngine) {
-        throw new Error('No flow engine available');
-      }
-
+      const currentEngine = engine ?? flowEngine;
+      if (!currentEngine) throw new Error('No flow engine available');
       const newSession = currentEngine.startSession();
       setSessionState(newSession);
       setSessionSummary(null);
       setViewMode('diagnostic');
-    } catch (err) {
+    } catch {
       Alert.alert('Error', 'Failed to start session');
     }
   };
+
+  // ─── Response handling ──────────────────────────────────────────────────────
 
   const handleResponse = (value: string | number | boolean) => {
     if (!sessionState || !flowEngine) return;
 
     try {
-      const updatedSession = flowEngine.processResponse(sessionState, value);
-      setSessionState(updatedSession);
+      const updated = flowEngine.processResponse(sessionState, value);
+      setSessionState(updated);
 
-      if (updatedSession.completed) {
+      if (updated.completed) {
+        // Build summary from completed state — artifact is already on the state
         const summary: SessionSummary = {
-          flow_id: updatedSession.flow_id,
-          flow_version: updatedSession.flow_version,
-          session_id: updatedSession.session_id,
-          started_at: updatedSession.started_at,
-          completed_at: updatedSession.completed_at!,
-          events: updatedSession.events,
-          terminal_node_id: updatedSession.terminal_node_id!,
-          result: updatedSession.result!,
+          flow_id:          updated.flow_id,
+          flow_version:     updated.flow_version,
+          session_id:       updated.session_id,
+          started_at:       updated.started_at,
+          completed_at:     updated.completed_at!,
+          events:           updated.events,
+          terminal_node_id: updated.terminal_node_id!,
+          result:           updated.result!,
+          artifact:         updated.artifact,
+          stopped:          false,
         };
         setSessionSummary(summary);
         loadHistory();
@@ -157,17 +163,56 @@ export default function App() {
     }
   };
 
+  // ─── STOP ───────────────────────────────────────────────────────────────────
+
+  const handleStop = () => {
+    if (!sessionState || !flowEngine) return;
+
+    Alert.alert(
+      'Stop Diagnostic',
+      'This will stop the diagnostic and save a partial summary for your technician. Continue?',
+      [
+        { text: 'Continue Diagnostic', style: 'cancel' },
+        {
+          text: 'Stop',
+          style: 'destructive',
+          onPress: () => {
+            try {
+              const stoppedState = flowEngine.stopSession(sessionState);
+              setSessionState(stoppedState);
+
+              const summary: SessionSummary = {
+                flow_id:          stoppedState.flow_id,
+                flow_version:     stoppedState.flow_version,
+                session_id:       stoppedState.session_id,
+                started_at:       stoppedState.started_at,
+                completed_at:     stoppedState.stopped_at!,
+                events:           stoppedState.events,
+                terminal_node_id: stoppedState.stop_node_id!,
+                result:           `Diagnostic stopped at: ${stoppedState.stop_node_id}`,
+                artifact:         stoppedState.partial_artifact,
+                stopped:          true,
+              };
+              setSessionSummary(summary);
+              loadHistory();
+            } catch (err) {
+              Alert.alert('Error', 'Failed to stop session');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // ─── Navigation ─────────────────────────────────────────────────────────────
+
   const showHistory = () => {
     loadHistory();
     setViewMode('history');
   };
 
   const closeHistory = () => {
-    if (sessionState) {
-      setViewMode('diagnostic');
-    } else {
-      setViewMode('flow-select');
-    }
+    setViewMode(sessionState ? 'diagnostic' : 'flow-select');
   };
 
   const clearHistory = () => {
@@ -211,21 +256,30 @@ export default function App() {
   };
 
   const backToFlowSelect = () => {
-    if (sessionState && !sessionState.completed) {
+    const sessionInProgress =
+      sessionState && !sessionState.completed && !sessionState.stopped;
+
+    if (sessionInProgress) {
       Alert.alert(
         'Session In Progress',
-        'You have an active session. Going back will abandon it. Continue?',
+        'Going back will stop the diagnostic and save a partial summary. Continue?',
         [
           { text: 'Cancel', style: 'cancel' },
           {
-            text: 'Abandon',
+            text: 'Stop & Go Back',
             style: 'destructive',
             onPress: () => {
-              StorageService.clearSessionState();
+              // Save partial artifact before leaving
+              if (flowEngine && sessionState) {
+                try {
+                  flowEngine.stopSession(sessionState);
+                } catch {}
+              }
               setFlowEngine(null);
               setSessionState(null);
               setSessionSummary(null);
               setViewMode('flow-select');
+              loadHistory();
             },
           },
         ]
@@ -238,7 +292,8 @@ export default function App() {
     }
   };
 
-  // History view
+  // ─── Render ─────────────────────────────────────────────────────────────────
+
   if (viewMode === 'history') {
     return (
       <ErrorBoundary>
@@ -254,7 +309,6 @@ export default function App() {
     );
   }
 
-  // Flow selection view
   if (viewMode === 'flow-select') {
     return (
       <ErrorBoundary>
@@ -271,12 +325,10 @@ export default function App() {
     );
   }
 
-  // Diagnostic view
-  if (!flowEngine || !sessionState) {
-    return null;
-  }
+  if (!flowEngine || !sessionState) return null;
 
   const currentNode = flowEngine.getCurrentNode(sessionState);
+  const sessionInProgress = !sessionState.completed && !sessionState.stopped;
 
   return (
     <ErrorBoundary>
@@ -288,38 +340,51 @@ export default function App() {
             <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
           <Text style={styles.headerText}>
-            Step {sessionState.events.length + 1}
+            {sessionInProgress
+              ? `Step ${sessionState.events.length + 1}`
+              : sessionState.stopped
+              ? 'Stopped'
+              : 'Complete'}
           </Text>
-          <TouchableOpacity onPress={resetApp}>
-            <Text style={styles.resetLink}>Reset</Text>
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            {sessionInProgress && (
+              <TouchableOpacity onPress={handleStop} style={styles.stopButton}>
+                <Text style={styles.stopButtonText}>Stop</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={resetApp}>
+              <Text style={styles.resetLink}>Reset</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.content}>
           {currentNode.type === 'QUESTION' && (
             <QuestionNodeComponent
-              node={currentNode}
+              node={currentNode as unknown as QuestionNode}
               onResponse={handleResponse}
             />
           )}
 
           {currentNode.type === 'SAFETY' && (
             <SafetyNodeComponent
-              node={currentNode}
+              node={currentNode as unknown as SafetyNode}
               onAcknowledge={() => handleResponse(true)}
             />
           )}
 
           {currentNode.type === 'MEASURE' && (
             <MeasureNodeComponent
-              node={currentNode}
+              node={currentNode as unknown as MeasureNode}
               onSubmit={handleResponse}
             />
           )}
 
-          {currentNode.type === 'TERMINAL' && (
+          {(currentNode.type === 'TERMINAL' ||
+            sessionState.completed ||
+            sessionState.stopped) && (
             <TerminalNodeComponent
-              node={currentNode}
+              node={currentNode.type === 'TERMINAL' ? currentNode as unknown as TerminalNode : null}
               summary={sessionSummary}
               onStartNew={() => startNewSession()}
               onViewHistory={showHistory}
@@ -355,26 +420,29 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#666',
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  stopButton: {
+    backgroundColor: '#fff3f3',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#f44336',
+  },
+  stopButtonText: {
+    fontSize: 13,
+    color: '#f44336',
+    fontWeight: '600',
+  },
   resetLink: {
     fontSize: 14,
     color: '#999',
   },
   content: {
     flex: 1,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorIcon: {
-    fontSize: 60,
-    marginBottom: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#f44336',
-    textAlign: 'center',
   },
 });

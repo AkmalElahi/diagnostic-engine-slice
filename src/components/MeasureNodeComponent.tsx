@@ -11,11 +11,17 @@ export const MeasureNodeComponent: React.FC<Props> = ({ node, onSubmit }) => {
   const [value, setValue] = useState<string>('');
   const [error, setError] = useState<string>('');
 
+  const { min, max } = node.validRange;
+
   const handleSubmit = () => {
     const numValue = parseFloat(value);
-    
+
     if (isNaN(numValue)) {
       setError('Please enter a valid number');
+      return;
+    }
+    if (numValue < min || numValue > max) {
+      setError(`Value must be between ${min} and ${max}${node.unit ? ` ${node.unit}` : ''}`);
       return;
     }
 
@@ -26,16 +32,16 @@ export const MeasureNodeComponent: React.FC<Props> = ({ node, onSubmit }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.instructionText}>{node.text}</Text>
-      
+
       <View style={styles.rangeInfo}>
         <Text style={styles.rangeText}>
-          Valid range: {node.min} - {node.max}
+          Valid range: {min} – {max}{node.unit ? ` ${node.unit}` : ''}
         </Text>
       </View>
 
       <TextInput
         style={styles.input}
-        placeholder="Enter measurement"
+        placeholder={node.unit ? `Enter value in ${node.unit}` : 'Enter measurement'}
         value={value}
         onChangeText={(text) => {
           setValue(text);
@@ -47,10 +53,7 @@ export const MeasureNodeComponent: React.FC<Props> = ({ node, onSubmit }) => {
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <TouchableOpacity
-        style={styles.submitButton}
-        onPress={handleSubmit}
-      >
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.buttonText}>SUBMIT MEASUREMENT</Text>
       </TouchableOpacity>
     </View>
