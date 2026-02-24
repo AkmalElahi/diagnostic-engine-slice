@@ -180,7 +180,7 @@
       "type": "TERMINAL",
       "result": "User declined diagnostic requirements",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
@@ -196,8 +196,12 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "Unknown",
-        "safety_notes": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Pause diagnosis, minimize water usage, and schedule a technician.",
           "If you suspect a leak, turn the pump OFF and shut off the city spigot only if it can be done safely."
@@ -209,12 +213,12 @@
       "type": "TERMINAL",
       "result": "City water source not providing pressure",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "No pressure at campground spigot",
-        "last_confirmed_state": "City water confirmed. No spigot pressure found",
+        "last_confirmed_state": "No spigot pressure found",
         "city_spigot_pressure": "No",
         "hose_condition": "Unknown",
         "pump_sound": "Unknown",
@@ -225,13 +229,14 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Turn off the spigot, relieve hose pressure, and avoid leaving the hose pressurized unattended."
         ],
         "recommendations": [
-          "Confirm the campground water source, or switch to your fresh tank and pump if available.",
-          "If water service cannot be restored safely, schedule a technician and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -240,12 +245,12 @@
       "type": "TERMINAL",
       "result": "City water source pressure not confirmed",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "User unable to confirm spigot pressure safely",
-        "last_confirmed_state": "City water confirmed. Spigot status uncertain",
+        "last_confirmed_state": "Spigot status uncertain",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Unknown",
@@ -256,13 +261,15 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Avoid leaving the hose pressurized unattended.",
           "Use fresh tank and pump if available."
         ],
         "recommendations": [
-          "If you cannot confirm the campground source safely, schedule a technician and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -271,12 +278,12 @@
       "type": "TERMINAL",
       "result": "City water hose or connection issue observed",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Hose kinked or loose connection",
-        "last_confirmed_state": "City water confirmed. Hose issue observed",
+        "last_confirmed_state": "Hose issue observed",
         "city_spigot_pressure": "Yes",
         "hose_condition": "Kinked or loose",
         "pump_sound": "Unknown",
@@ -287,13 +294,15 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Turn off the spigot before adjusting anything.",
           "Keep electrical cords away from water."
         ],
         "recommendations": [
-          "If water service cannot be restored safely, schedule a technician and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -302,12 +311,12 @@
       "type": "TERMINAL",
       "result": "Leak observed at city water inlet",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Water spraying or leaking at inlet",
-        "last_confirmed_state": "City water confirmed. Leak at inlet observed",
+        "last_confirmed_state": "Leak at inlet observed",
         "city_spigot_pressure": "Yes",
         "hose_condition": "OK",
         "pump_sound": "Unknown",
@@ -318,13 +327,15 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Turn off the spigot immediately to prevent flooding.",
           "Use fresh tank and pump if available."
         ],
         "recommendations": [
-          "Do not leave the system pressurized unattended. Schedule a technician and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -333,12 +344,12 @@
       "type": "TERMINAL",
       "result": "Water mode setting not in normal position",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Docking station or valve mode not set to normal or city",
-        "last_confirmed_state": "City water confirmed. Water mode incorrect",
+        "last_confirmed_state": "Water mode incorrect",
         "city_spigot_pressure": "Yes",
         "hose_condition": "OK",
         "pump_sound": "Unknown",
@@ -349,14 +360,15 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Not NORMAL or CITY",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Do not force valves.",
           "If unsure, stop and capture photos for a technician."
         ],
         "recommendations": [
-          "If you are unsure of the correct mode setting, stop and schedule a technician.",
-          "Share this artifact with the technician."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -365,12 +377,12 @@
       "type": "TERMINAL",
       "result": "Low flow likely due to regulator, filter, or campground pressure",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Low flow everywhere on city water",
-        "last_confirmed_state": "City water confirmed. Low flow with filter detected",
+        "last_confirmed_state": "Low flow with filter detected",
         "city_spigot_pressure": "Yes",
         "hose_condition": "OK",
         "pump_sound": "Unknown",
@@ -381,12 +393,14 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "If flow is usable, conserve water and avoid running multiple fixtures at once."
         ],
         "recommendations": [
-          "If low flow prevents normal use, schedule a technician and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -395,12 +409,12 @@
       "type": "TERMINAL",
       "result": "Low flow likely due to campground pressure or inlet restriction",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Low flow everywhere on city water",
-        "last_confirmed_state": "City water confirmed. Low flow without filter detected",
+        "last_confirmed_state": "Low flow without filter detected",
         "city_spigot_pressure": "Yes",
         "hose_condition": "OK",
         "pump_sound": "Unknown",
@@ -411,12 +425,14 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "If flow is usable, conserve water and avoid running multiple fixtures at once."
         ],
         "recommendations": [
-          "If low flow prevents normal use, schedule a technician and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -425,12 +441,12 @@
       "type": "TERMINAL",
       "result": "Low flow on city water, regulator/filter presence unknown",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Low flow everywhere on city water",
-        "last_confirmed_state": "City water confirmed. Low flow detected",
+        "last_confirmed_state": "Low flow detected",
         "city_spigot_pressure": "Yes",
         "hose_condition": "OK",
         "pump_sound": "Unknown",
@@ -441,12 +457,14 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "If flow is usable, conserve water and avoid running multiple fixtures at once."
         ],
         "recommendations": [
-          "If low flow prevents normal use, schedule a technician and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -455,12 +473,12 @@
       "type": "TERMINAL",
       "result": "City water affects only some fixtures",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Partial fixture impact",
-        "last_confirmed_state": "City water confirmed. Partial fixture impact observed",
+        "last_confirmed_state": "Partial fixture impact observed",
         "city_spigot_pressure": "Yes",
         "hose_condition": "OK",
         "pump_sound": "Unknown",
@@ -471,13 +489,15 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Avoid forcing valves.",
           "Document which fixtures fail and which work."
         ],
         "recommendations": [
-          "Schedule a technician if the issue persists, and share this artifact with fixture notes."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -486,12 +506,12 @@
       "type": "TERMINAL",
       "result": "Pump switch on while on city water",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Pump switch not off during city water use",
-        "last_confirmed_state": "City water confirmed. Pump switch on detected",
+        "last_confirmed_state": "Pump switch on detected",
         "city_spigot_pressure": "Yes",
         "hose_condition": "OK",
         "pump_sound": "Unknown",
@@ -502,14 +522,15 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "NORMAL or CITY",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Turn pump OFF if comfortable.",
           "If you are not sure, stop and capture the current state for a technician."
         ],
         "recommendations": [
-          "If you are not comfortable changing switch states, stop and schedule a technician.",
-          "Share this artifact with the technician."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -518,29 +539,31 @@
       "type": "TERMINAL",
       "result": "City water path likely has a blockage or check valve issue",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "City pressure present, no water at fixtures",
-        "last_confirmed_state": "City water confirmed. Blockage suspected",
+        "last_confirmed_state": "Blockage suspected",
         "city_spigot_pressure": "Yes",
         "hose_condition": "OK",
         "pump_sound": "Unknown",
-        "pump_switch_status": "Off or Unknown",
+        "pump_switch_status": "Unknown",
         "regulator_or_filter_present": "Unknown",
         "symptom_scope": "No water everywhere",
         "tank_level_known": "Unknown",
         "tank_level_status": "Unknown",
         "water_mode_setting": "NORMAL or CITY",
         "water_path": "City water",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Turn off the spigot when away.",
           "Use fresh tank and pump if available."
         ],
         "recommendations": [
-          "Schedule a technician to evaluate the city water path and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -549,12 +572,12 @@
       "type": "TERMINAL",
       "result": "Fresh tank empty",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Fresh tank shows empty",
-        "last_confirmed_state": "Tank water confirmed. Fresh tank empty",
+        "last_confirmed_state": "Fresh tank empty",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Unknown",
@@ -565,13 +588,14 @@
         "tank_level_status": "Empty",
         "water_mode_setting": "Unknown",
         "water_path": "Fresh tank and pump",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Turn pump OFF to avoid running it dry."
         ],
         "recommendations": [
-          "Refill the fresh tank if available, or schedule a technician if you cannot restore water service.",
-          "Share this artifact with the technician."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -580,12 +604,12 @@
       "type": "TERMINAL",
       "result": "Fresh tank low or air entering the pump",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Air spitting observed",
-        "last_confirmed_state": "Tank water confirmed. Tank low or air detected",
+        "last_confirmed_state": "Tank low or air detected",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Unknown",
@@ -596,12 +620,14 @@
         "tank_level_status": "Unknown",
         "water_mode_setting": "Unknown",
         "water_path": "Fresh tank and pump",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Turn pump OFF if it is rapidly cycling, and conserve remaining water."
         ],
         "recommendations": [
-          "If water service cannot be restored safely, schedule a technician and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -610,12 +636,12 @@
       "type": "TERMINAL",
       "result": "Pump switch off",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Pump switch not on",
-        "last_confirmed_state": "Tank water confirmed. Pump switch off",
+        "last_confirmed_state": "Pump switch off",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Unknown",
@@ -626,10 +652,14 @@
         "tank_level_status": "Has water",
         "water_mode_setting": "Unknown",
         "water_path": "Fresh tank and pump",
-        "safety_notes": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
-          "If you cannot locate the correct pump switch, schedule a technician and share this artifact."
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
         "notes": ""
       }
@@ -638,12 +668,12 @@
       "type": "TERMINAL",
       "result": "Pump switch status unknown",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "User unsure of pump switch location",
-        "last_confirmed_state": "Tank water confirmed. Pump switch status unknown",
+        "last_confirmed_state": "Pump switch status unknown",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Unknown",
@@ -654,8 +684,12 @@
         "tank_level_status": "Has water",
         "water_mode_setting": "Unknown",
         "water_path": "Fresh tank and pump",
-        "safety_notes": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
@@ -666,12 +700,12 @@
       "type": "TERMINAL",
       "result": "Pump not running, fuse panel not located",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Cannot locate 12V fuse panel",
-        "last_confirmed_state": "Tank water confirmed. Fuse panel not located",
+        "last_confirmed_state": "Fuse panel not located",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Silent",
@@ -682,8 +716,12 @@
         "tank_level_status": "Has water",
         "water_mode_setting": "Unknown",
         "water_path": "Fresh tank and pump",
-        "safety_notes": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
@@ -694,12 +732,12 @@
       "type": "TERMINAL",
       "result": "Pump fuse blown or breaker tripped",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Protection device indicates fault",
-        "last_confirmed_state": "Tank water confirmed. Fuse or breaker issue found",
+        "last_confirmed_state": "Fuse or breaker issue found",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Silent",
@@ -710,8 +748,12 @@
         "tank_level_status": "Has water",
         "water_mode_setting": "Unknown",
         "water_path": "Fresh tank and pump",
-        "safety_notes": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
@@ -722,12 +764,12 @@
       "type": "TERMINAL",
       "result": "Pump not running, requires diagnosis",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Pump silent with switch on",
-        "last_confirmed_state": "Tank water confirmed. Pump not running",
+        "last_confirmed_state": "Pump not running",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Silent",
@@ -738,8 +780,12 @@
         "tank_level_status": "Has water",
         "water_mode_setting": "Unknown",
         "water_path": "Fresh tank and pump",
-        "safety_notes": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician and share this artifact so they can triage the issue quickly."
         ],
@@ -750,12 +796,12 @@
       "type": "TERMINAL",
       "result": "Pump runs but water flow not restored",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Pump runs, stops normally, but water still not flowing",
-        "last_confirmed_state": "Tank water confirmed. Pump runs but no flow",
+        "last_confirmed_state": "Pump runs but no flow",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Runs",
@@ -766,7 +812,9 @@
         "tank_level_status": "Has water",
         "water_mode_setting": "Unknown",
         "water_path": "Fresh tank and pump",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Turn pump OFF when not actively testing to avoid damage or leaks."
         ],
@@ -780,12 +828,12 @@
       "type": "TERMINAL",
       "result": "Pump behavior suggests leak, restriction, or pressure issue",
       "artifact": {
-        "issue": "Water system issue",
+        "issue": "Water System Issue",
         "flow_id": "flow_2_water_system_issue",
         "flow_version": "2.0",
         "artifact_schema_version": "1.0",
         "stop_reason": "Pump does not stop or cycles unexpectedly",
-        "last_confirmed_state": "Tank water confirmed. Pump cycles unexpectedly",
+        "last_confirmed_state": "Pump cycles unexpectedly",
         "city_spigot_pressure": "Unknown",
         "hose_condition": "Unknown",
         "pump_sound": "Runs",
@@ -796,7 +844,9 @@
         "tank_level_status": "Has water",
         "water_mode_setting": "Unknown",
         "water_path": "Fresh tank and pump",
-        "safety_notes": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Turn pump OFF when not in use.",
           "Check for visible leaks under the RV."

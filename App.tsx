@@ -21,10 +21,10 @@ import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { StorageService } from './src/utils/StorageService';
 import { FlowValidationError } from './src/utils/FlowValidator';
 
-import no_power_issue from './src/flows/flow_1_no_power_v2.json';
-import water_system_issue from './src/flows/flow_2_water_system_v2.json';
-import propane_system_issue from './src/flows/flow_3_propane_system_issue.json';
-import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue.json';
+import no_power_issue from './src/flows/flow_1_no_power_inside_rv_v2.json';
+import water_system_issue from './src/flows/flow_2_water_system_issue_v2.json';
+import propane_system_issue from './src/flows/flow_3_propane_system_issue_v2.json';
+import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue_v2.json';
 
 type ViewMode = 'flow-select' | 'diagnostic' | 'history';
 

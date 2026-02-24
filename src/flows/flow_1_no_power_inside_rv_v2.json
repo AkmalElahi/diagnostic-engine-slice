@@ -142,173 +142,263 @@
     },
     "terminal_capability_declined": {
       "type": "TERMINAL",
-      "result": "Capability Declined",
+      "result": "Capability declined",
       "artifact": {
-        "issue": "Capability Declined",
+        "issue": "No Power Inside RV",
         "flow_id": "flow_1_no_power_inside_rv",
         "flow_version": "2.0",
-        "stop_reason": "Capability Declined",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Capability declined",
         "last_confirmed_state": "Capability Declined",
+        "battery_connection_observation": "Unknown",
+        "charging_response": "Unknown",
+        "disconnect_status": "Unknown",
+        "fuse_panel_status": "Unknown",
         "power_source_context": "Unknown",
         "voltage_known": "Unknown",
         "voltage_value": null,
-        "charging_response": "Unknown",
-        "disconnect_status": "Unknown",
-        "battery_connection_observation": "Unknown",
-        "fuse_panel_status": "Unknown",
-        "safety_notes": ""
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
+        "recommendations": [
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
+        ],
+        "notes": ""
       }
     },
     "terminal_ac_only_issue_suspected": {
       "type": "TERMINAL",
-      "result": "AC-Only Issue Suspected",
+      "result": "AC-only issue suspected",
       "artifact": {
-        "issue": "AC-Only Issue Suspected",
+        "issue": "No Power Inside RV",
         "flow_id": "flow_1_no_power_inside_rv",
         "flow_version": "2.0",
-        "stop_reason": "AC-Only Issue Suspected",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "AC-only issue suspected",
         "last_confirmed_state": "AC-Only Issue Suspected",
+        "battery_connection_observation": "Unknown",
+        "charging_response": "Unknown",
+        "disconnect_status": "Unknown",
+        "fuse_panel_status": "Unknown",
         "power_source_context": "Unknown",
         "voltage_known": "Unknown",
         "voltage_value": null,
-        "charging_response": "Unknown",
-        "disconnect_status": "Unknown",
-        "battery_connection_observation": "Unknown",
-        "fuse_panel_status": "Unknown",
-        "safety_notes": ""
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
+        "recommendations": [
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
+        ],
+        "notes": ""
       }
     },
     "terminal_low_voltage_identified": {
       "type": "TERMINAL",
-      "result": "Low Voltage Identified",
+      "result": "Low voltage identified",
       "artifact": {
-        "issue": "Low Voltage Identified",
+        "issue": "No Power Inside RV",
         "flow_id": "flow_1_no_power_inside_rv",
         "flow_version": "2.0",
-        "stop_reason": "Low Voltage Identified",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Low voltage identified",
         "last_confirmed_state": "Low Voltage Identified",
-        "power_source_context": "{{power_source_context.value}}",
-        "voltage_known": "Yes",
-        "voltage_value": "{{measure_battery_voltage.value}}",
+        "battery_connection_observation": "Unknown",
         "charging_response": "Unknown",
         "disconnect_status": "Unknown",
-        "battery_connection_observation": "Unknown",
         "fuse_panel_status": "Unknown",
-        "safety_notes": ""
+        "power_source_context": "Unknown",
+        "voltage_known": "Yes",
+        "voltage_value": null,
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
+        "recommendations": [
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
+        ],
+        "notes": ""
       }
     },
     "terminal_charging_system_not_raising_voltage": {
       "type": "TERMINAL",
-      "result": "Charging System Not Raising Voltage",
+      "result": "Charging system not raising voltage",
       "artifact": {
-        "issue": "Charging System Not Raising Voltage",
+        "issue": "No Power Inside RV",
         "flow_id": "flow_1_no_power_inside_rv",
         "flow_version": "2.0",
-        "stop_reason": "Charging System Not Raising Voltage",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Charging system not raising voltage",
         "last_confirmed_state": "Charging System Not Raising Voltage",
-        "power_source_context": "{{power_source_context.value}}",
-        "voltage_known": "Yes",
-        "voltage_value": "{{measure_battery_voltage.value}}",
+        "battery_connection_observation": "Unknown",
         "charging_response": "No",
         "disconnect_status": "Unknown",
-        "battery_connection_observation": "Unknown",
         "fuse_panel_status": "Unknown",
-        "safety_notes": ""
+        "power_source_context": "Unknown",
+        "voltage_known": "Yes",
+        "voltage_value": null,
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
+        "recommendations": [
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
+        ],
+        "notes": ""
       }
     },
     "terminal_battery_connection_issue_observed": {
       "type": "TERMINAL",
-      "result": "Battery Connection Issue Observed",
+      "result": "Battery connection issue observed",
       "artifact": {
-        "issue": "Battery Connection Issue Observed",
+        "issue": "No Power Inside RV",
         "flow_id": "flow_1_no_power_inside_rv",
         "flow_version": "2.0",
-        "stop_reason": "Battery Connection Issue Observed",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Battery connection issue observed",
         "last_confirmed_state": "Battery Connection Issue Observed",
-        "power_source_context": "{{power_source_context.value}}",
-        "voltage_known": "{{voltage_access_check.value}}",
-        "voltage_value": "{{measure_battery_voltage.value}}",
+        "battery_connection_observation": "Battery Connection Issue Observed",
         "charging_response": "Unknown",
         "disconnect_status": "Unknown",
-        "battery_connection_observation": "Battery Connection Issue Observed",
         "fuse_panel_status": "Unknown",
-        "safety_notes": ""
+        "power_source_context": "Unknown",
+        "voltage_known": "Unknown",
+        "voltage_value": null,
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
+        "recommendations": [
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
+        ],
+        "notes": ""
       }
     },
     "terminal_disconnect_switch_off": {
       "type": "TERMINAL",
-      "result": "Disconnect Switch Off",
+      "result": "Disconnect switch off",
       "artifact": {
-        "issue": "Disconnect Switch Off",
+        "issue": "No Power Inside RV",
         "flow_id": "flow_1_no_power_inside_rv",
         "flow_version": "2.0",
-        "stop_reason": "Disconnect Switch Off",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Disconnect switch off",
         "last_confirmed_state": "Disconnect Switch Off",
-        "power_source_context": "{{power_source_context.value}}",
-        "voltage_known": "{{voltage_access_check.value}}",
-        "voltage_value": "{{measure_battery_voltage.value}}",
+        "battery_connection_observation": "Unknown",
         "charging_response": "Unknown",
         "disconnect_status": "Off",
-        "battery_connection_observation": "{{battery_connection_observation.value}}",
         "fuse_panel_status": "Unknown",
-        "safety_notes": ""
+        "power_source_context": "Unknown",
+        "voltage_known": "Unknown",
+        "voltage_value": null,
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
+        "recommendations": [
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
+        ],
+        "notes": ""
       }
     },
     "terminal_fuse_or_breaker_issue_observed": {
       "type": "TERMINAL",
-      "result": "Fuse or Breaker Issue Observed",
+      "result": "Fuse or breaker issue observed",
       "artifact": {
-        "issue": "Fuse or Breaker Issue Observed",
+        "issue": "No Power Inside RV",
         "flow_id": "flow_1_no_power_inside_rv",
         "flow_version": "2.0",
-        "stop_reason": "Fuse or Breaker Issue Observed",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Fuse or breaker issue observed",
         "last_confirmed_state": "Fuse or Breaker Issue Observed",
-        "power_source_context": "{{power_source_context.value}}",
-        "voltage_known": "{{voltage_access_check.value}}",
-        "voltage_value": "{{measure_battery_voltage.value}}",
+        "battery_connection_observation": "Unknown",
         "charging_response": "Unknown",
-        "disconnect_status": "{{disconnect_position_check.value}}",
-        "battery_connection_observation": "{{battery_connection_observation.value}}",
+        "disconnect_status": "Unknown",
         "fuse_panel_status": "Fuse or Breaker Issue Observed",
-        "safety_notes": ""
+        "power_source_context": "Unknown",
+        "voltage_known": "Unknown",
+        "voltage_value": null,
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
+        "recommendations": [
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
+        ],
+        "notes": ""
       }
     },
     "terminal_complete_12v_power_loss": {
       "type": "TERMINAL",
-      "result": "Complete 12V Power Loss",
+      "result": "Complete 12V power loss",
       "artifact": {
-        "issue": "Complete 12V Power Loss",
+        "issue": "No Power Inside RV",
         "flow_id": "flow_1_no_power_inside_rv",
         "flow_version": "2.0",
-        "stop_reason": "Complete 12V Power Loss",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Complete 12V power loss",
         "last_confirmed_state": "Complete 12V Power Loss",
-        "power_source_context": "{{power_source_context.value}}",
-        "voltage_known": "{{voltage_access_check.value}}",
-        "voltage_value": "{{measure_battery_voltage.value}}",
-        "charging_response": "{{charging_response_check.value}}",
-        "disconnect_status": "{{disconnect_position_check.value}}",
-        "battery_connection_observation": "{{battery_connection_observation.value}}",
-        "fuse_panel_status": "{{fuse_visual_check.value}}",
-        "safety_notes": ""
+        "battery_connection_observation": "Unknown",
+        "charging_response": "Unknown",
+        "disconnect_status": "Unknown",
+        "fuse_panel_status": "Unknown",
+        "power_source_context": "Unknown",
+        "voltage_known": "Unknown",
+        "voltage_value": null,
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
+        "recommendations": [
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
+        ],
+        "notes": ""
       }
     },
     "terminal_partial_12v_power_loss": {
       "type": "TERMINAL",
-      "result": "Partial 12V Power Loss",
+      "result": "Partial 12V power loss",
       "artifact": {
-        "issue": "Partial 12V Power Loss",
+        "issue": "No Power Inside RV",
         "flow_id": "flow_1_no_power_inside_rv",
         "flow_version": "2.0",
-        "stop_reason": "Partial 12V Power Loss",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Partial 12V power loss",
         "last_confirmed_state": "Partial 12V Power Loss",
-        "power_source_context": "{{power_source_context.value}}",
-        "voltage_known": "{{voltage_access_check.value}}",
-        "voltage_value": "{{measure_battery_voltage.value}}",
-        "charging_response": "{{charging_response_check.value}}",
-        "disconnect_status": "{{disconnect_position_check.value}}",
-        "battery_connection_observation": "{{battery_connection_observation.value}}",
-        "fuse_panel_status": "{{fuse_visual_check.value}}",
-        "safety_notes": ""
+        "battery_connection_observation": "Unknown",
+        "charging_response": "Unknown",
+        "disconnect_status": "Unknown",
+        "fuse_panel_status": "Unknown",
+        "power_source_context": "Unknown",
+        "voltage_known": "Unknown",
+        "voltage_value": null,
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
+        "recommendations": [
+          "Schedule a technician and share this artifact so they can triage the issue quickly."
+        ],
+        "notes": ""
       }
     }
   }

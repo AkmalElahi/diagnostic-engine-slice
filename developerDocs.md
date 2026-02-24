@@ -12,7 +12,7 @@ Raw Flow JSON (canonical writing pack)
         │
         ▼
   FlowValidator          ← validates structure, routing, and artifact contract
-        │                   handles both dict and array node formats natively
+        │                   enforces dict-only nodes format (rejects arrays)
         ▼
    FlowEngine            ← executes session, routes answers, enforces STOP
         │
@@ -47,9 +47,14 @@ The engine is **immutable infrastructure**. All diagnostic content lives in flow
 | `flowVersion` | string | ✓ | Semantic version string |
 | `title` | string | ✓ | Human-readable flow name |
 | `startNode` | string | ✓ | Must reference an existing node ID |
-| `nodes` | object or array | ✓ | Dict (Flows 1 & 2) or array with `id` field per node (Flows 3 & 4) |
+| `nodes` | object | ✓ | **MUST be object/dict** keyed by node ID. Array format is rejected. |
 
-The engine and validator handle both `nodes` formats natively — no conversion needed.
+**CRITICAL:** The `nodes` field must be an object (dictionary) where keys are node IDs and values are node objects. The validator will reject array format with this error:
+
+```
+Flow "nodes" must be an object (dictionary) keyed by node ID.
+Array format is not allowed. Convert to: { "node_id": { "type": "...", ... }, ... }
+```
 
 ### 2.2 Node Types
 
@@ -149,9 +154,9 @@ Each flow defines its own diagnostic context fields:
 
 Flow-specific fields are not validated for presence — only universal fields are enforced.
 
-### 3.4 Template Variables
+### 3.4 Template Variables (Flow 1 only)
 
-Flow uses template variables to carry session values into artifact fields:
+Flow 1 uses template variables to carry session values into artifact fields:
 ```
 "{{power_source_context.value}}"    → resolved from node answer at runtime
 "{{measure_battery_voltage.value}}" → resolved from MEASURE input
@@ -291,7 +296,7 @@ interface SessionEvent {
 | `startNode` references existing node | Validated against resolved node dict |
 | All node types are valid | Only QUESTION / SAFETY / MEASURE / TERMINAL allowed |
 | QUESTION `answers` non-empty object | All values must reference existing nodes |
-| SAFETY uses `"next"` for next node | Validator throws with explicit message if wrong |
+| SAFETY uses `"next"` not `"nextNode"` | Validator throws with explicit message if wrong |
 | MEASURE `validRange.min < max` | Both must be numbers |
 | MEASURE `branches` non-empty array | All conditions parseable, all `next` exist |
 | All nodes reachable from `startNode` | Full graph traversal, unreachable nodes throw |

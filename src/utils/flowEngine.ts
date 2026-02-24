@@ -30,11 +30,10 @@ export class FlowEngine {
 
   constructor(rawFlow: unknown) {
     try {
-      // Validate raw flow JSON directly — no normaliser step
+      // Validate raw flow JSON directly — validator enforces dict-only nodes
       FlowValidator.validate(rawFlow as RawFlow);
       this.flow  = rawFlow as RawFlow;
-      // Resolve nodes once — handles both dict and array formats
-      this.nodes = FlowValidator.resolveNodes(this.flow);
+      this.nodes = this.flow.nodes;  // Already guaranteed to be dict by validator
     } catch (error) {
       if (error instanceof FlowValidationError) throw error;
       throw new FlowEngineError(`Invalid flow definition: ${error}`);
@@ -221,21 +220,17 @@ export class FlowEngine {
    * full set of flow-specific field names, then:
    *   1. Sets all fields to "Unknown" / [] as appropriate
    *   2. Restores universal fields with STOP-specific values
-   *   3. Resolves template variables ({{node_id.value}}) from collected events
+   *   3. Resolves template variables ({{node_id.value}}) via interpolateArtifact
    */
   private buildStopArtifact(sessionState: SessionState): FlowArtifact {
     const template = this.getTemplateArtifact();
 
-    // Build event map: node_id → answered value
-    const eventMap = new Map<string, string | number | boolean>();
-    for (const event of sessionState.events) {
-      eventMap.set(event.node_id, event.value);
-    }
-
     // Start from template, default every non-universal field to "Unknown"
     const artifact: Record<string, unknown> = { ...template };
     const universalFields = new Set([
-      'flow_id', 'flow_version', 'issue', 'safety_notes',
+      'flow_id', 'flow_version', 'artifact_schema_version', 'issue', 
+      'stop_reason', 'last_confirmed_state', 'safety_notes', 
+      'stabilization_actions', 'recommendations', 'notes',
     ]);
 
     for (const key of Object.keys(artifact)) {
@@ -249,23 +244,12 @@ export class FlowEngine {
       `User stopped diagnostic at node: ${sessionState.current_node_id}`;
     artifact['last_confirmed_state'] =
       this.buildLastConfirmedState(sessionState);
-    artifact['safety_notes'] = '';
+    artifact['safety_notes'] = [];
 
-    // Resolve template variables from collected events
-    for (const [key, templateValue] of Object.entries(template)) {
-      if (typeof templateValue === 'string' && templateValue.includes('{{')) {
-        artifact[key] = templateValue.replace(
-          /\{\{([^}]+)\}\}/g,
-          (_match: string, expr: string) => {
-            const nodeId = expr.trim().split('.')[0];
-            const val = eventMap.get(nodeId);
-            return val !== undefined ? String(val) : 'Unknown';
-          }
-        );
-      }
-    }
+    // Use interpolateArtifact to resolve all {{...}} placeholders with captured values
+    const resolvedArtifact = this.interpolateArtifact(sessionState, artifact);
 
-    return artifact as FlowArtifact;
+    return resolvedArtifact as FlowArtifact;
   }
 
   private buildLastConfirmedState(sessionState: SessionState): string {
@@ -293,8 +277,47 @@ export class FlowEngine {
       issue:                this.flow.title ?? '',
       stop_reason:          '',
       last_confirmed_state: '',
-      safety_notes:         '',
+      safety_notes:         [],
     };
+  }
+
+  private getNodeValue(sessionState: SessionState, nodeId: string): string | number | null {
+    // Search in reverse to get the most recent value if node was visited multiple times
+    for (let i = sessionState.events.length - 1; i >= 0; i--) {
+      const event = sessionState.events[i];
+      if (event.node_id === nodeId) {
+        return typeof event.value === 'boolean' ? String(event.value) : event.value;
+      }
+    }
+    return null;
+  }
+
+  private interpolateArtifact(sessionState: SessionState, artifact: any): any {
+    // Deep clone to avoid mutating the original
+    const clone = JSON.parse(JSON.stringify(artifact));
+
+    const interpolate = (obj: any): any => {
+      if (typeof obj === 'string') {
+        // Replace all {{node_id.value}} patterns
+        return obj.replace(/\{\{([^.]+)\.value\}\}/g, (_match: string, nodeId: string) => {
+          const value = this.getNodeValue(sessionState, nodeId.trim());
+          return value !== null ? String(value) : 'Unknown';
+        });
+      }
+      if (Array.isArray(obj)) {
+        return obj.map(interpolate);
+      }
+      if (obj && typeof obj === 'object') {
+        const result: any = {};
+        for (const [key, val] of Object.entries(obj)) {
+          result[key] = interpolate(val);
+        }
+        return result;
+      }
+      return obj;
+    };
+
+    return interpolate(clone);
   }
 
   // ─── Terminal processing ──────────────────────────────────────────────────
@@ -310,6 +333,8 @@ export class FlowEngine {
       value:     true,
       timestamp: new Date().toISOString(),
     };
+    
+    const resolvedArtifact = this.interpolateArtifact(sessionState, terminalNode.artifact);
 
     const completedState: SessionState = {
       ...sessionState,
@@ -319,7 +344,7 @@ export class FlowEngine {
       completed_at:     new Date().toISOString(),
       terminal_node_id: sessionState.current_node_id,
       result:           terminalNode.result,
-      artifact:         terminalNode.artifact,
+      artifact:         resolvedArtifact,
     };
 
     StorageService.saveSessionState(completedState);

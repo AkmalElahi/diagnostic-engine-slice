@@ -40,15 +40,15 @@ export const FlowSelector: React.FC<Props> = ({
       <ScrollView style={styles.flowList}>
         {flows.map((flowInfo, index) => (
           <TouchableOpacity
-            key={flowInfo.flow.flow_id}
+            key={flowInfo.flow.flowId}
             style={styles.flowCard}
             onPress={() => onSelectFlow(flowInfo.flow)}
           >
             <Text style={styles.flowName}>{flowInfo.name}</Text>
             <Text style={styles.flowDescription}>{flowInfo.description}</Text>
             <View style={styles.flowMeta}>
-              <Text style={styles.flowVersion}>v{flowInfo.flow.flow_version}</Text>
-              <Text style={styles.flowId}>{flowInfo.flow.flow_id}</Text>
+              <Text style={styles.flowVersion}>v{flowInfo.flow.flowVersion}</Text>
+              <Text style={styles.flowId}>{flowInfo.flow.flowId}</Text>
             </View>
           </TouchableOpacity>
         ))}

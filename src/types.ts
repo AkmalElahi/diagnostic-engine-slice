@@ -37,7 +37,7 @@ export interface FlowArtifact {
   issue: string;
   stop_reason: string;
   last_confirmed_state: string;
-  safety_notes: string;
+  safety_notes: string[];
   // Optional common fields (validated for type when present)
   stabilization_actions?: string[];
   recommendations?: string[];

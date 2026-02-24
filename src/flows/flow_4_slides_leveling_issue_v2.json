@@ -3,9 +3,8 @@
   "flowVersion": "2.0",
   "title": "Slides and Leveling Systems",
   "startNode": "capability_gate_slides_leveling",
-  "nodes": [
-    {
-      "id": "capability_gate_slides_leveling",
+  "nodes": {
+    "capability_gate_slides_leveling": {
       "type": "QUESTION",
       "text": "You may be asked to observe indicator lights, warning messages, and control panel states using normal controls. You will not be asked to crawl under the RV, remove panels, or operate manual overrides. Are you comfortable proceeding?",
       "answers": {
@@ -13,14 +12,12 @@
         "no": "terminal_capability_declined"
       }
     },
-    {
-      "id": "safety_check_slide_level_hazard",
+    "safety_check_slide_level_hazard": {
       "type": "SAFETY",
       "text": "If the RV is unstable, shifting, leaning unexpectedly, or if any person or pet is in a pinch area, stop immediately. Do not attempt to move slides or level the RV until the area is clear and the RV is stable. You may stop the diagnostic at any time to capture the current state for a technician. Continue only if no immediate hazard is present.",
       "next": "primary_system_selection"
     },
-    {
-      "id": "primary_system_selection",
+    "primary_system_selection": {
       "type": "QUESTION",
       "text": "Which system are you having trouble with right now?",
       "answers": {
@@ -29,8 +26,7 @@
         "both": "terminal_multiple_systems_affected"
       }
     },
-    {
-      "id": "slide_primary_symptom",
+    "slide_primary_symptom": {
       "type": "QUESTION",
       "text": "What best describes the slide-out issue?",
       "answers": {
@@ -40,8 +36,7 @@
         "slide_moves_but_makes_abnormal_noises": "slide_noise_check"
       }
     },
-    {
-      "id": "slide_no_movement_check",
+    "slide_no_movement_check": {
       "type": "QUESTION",
       "text": "When you attempt to move the slide, do you see or hear any response such as a click, motor sound, or indicator light change?",
       "answers": {
@@ -49,8 +44,7 @@
         "no": "terminal_slide_no_response"
       }
     },
-    {
-      "id": "slide_partial_movement_check",
+    "slide_partial_movement_check": {
       "type": "QUESTION",
       "text": "Does the slide stop at the same point each time it moves?",
       "answers": {
@@ -58,8 +52,7 @@
         "no": "slide_power_interlock_check"
       }
     },
-    {
-      "id": "slide_uneven_movement_check",
+    "slide_uneven_movement_check": {
       "type": "QUESTION",
       "text": "Does one side of the slide move more than the other?",
       "answers": {
@@ -67,8 +60,7 @@
         "no": "slide_power_interlock_check"
       }
     },
-    {
-      "id": "slide_noise_check",
+    "slide_noise_check": {
       "type": "QUESTION",
       "text": "Are the noises grinding, popping, or banging rather than smooth motor sounds?",
       "answers": {
@@ -76,8 +68,7 @@
         "no": "slide_power_interlock_check"
       }
     },
-    {
-      "id": "slide_power_interlock_check",
+    "slide_power_interlock_check": {
       "type": "QUESTION",
       "text": "Are any warning messages or indicator lights shown on the slide or leveling control panel?",
       "answers": {
@@ -85,8 +76,7 @@
         "no": "terminal_slide_power_or_motor_issue"
       }
     },
-    {
-      "id": "slide_binding_or_sync_issue",
+    "slide_binding_or_sync_issue": {
       "type": "QUESTION",
       "text": "Does the slide appear square and aligned when stopped?",
       "answers": {
@@ -94,8 +84,7 @@
         "no": "terminal_slide_sync_issue"
       }
     },
-    {
-      "id": "leveling_primary_symptom",
+    "leveling_primary_symptom": {
       "type": "QUESTION",
       "text": "What best describes the leveling system issue?",
       "answers": {
@@ -105,8 +94,7 @@
         "manual_mode_unavailable_or_locked_out": "terminal_leveling_interlock_issue"
       }
     },
-    {
-      "id": "leveling_no_start_check",
+    "leveling_no_start_check": {
       "type": "QUESTION",
       "text": "When you attempt to start leveling, do you see any response from the control panel?",
       "answers": {
@@ -114,8 +102,7 @@
         "no": "terminal_leveling_power_issue"
       }
     },
-    {
-      "id": "leveling_partial_cycle_check",
+    "leveling_partial_cycle_check": {
       "type": "QUESTION",
       "text": "Does the leveling system stop at the same point during each attempt?",
       "answers": {
@@ -123,8 +110,7 @@
         "no": "leveling_interlock_check"
       }
     },
-    {
-      "id": "leveling_accuracy_issue",
+    "leveling_accuracy_issue": {
       "type": "QUESTION",
       "text": "Does the control panel indicate level, but the RV still feels unlevel?",
       "answers": {
@@ -132,8 +118,7 @@
         "no": "leveling_interlock_check"
       }
     },
-    {
-      "id": "leveling_interlock_check",
+    "leveling_interlock_check": {
       "type": "QUESTION",
       "text": "Are there any warning messages or interlock indicators shown on the leveling control panel?",
       "answers": {
@@ -141,41 +126,49 @@
         "no": "terminal_leveling_hydraulic_or_motor_issue"
       }
     },
-    {
-      "id": "terminal_capability_declined",
+    "terminal_capability_declined": {
       "type": "TERMINAL",
       "result": "User declined diagnostic requirements",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Unknown",
-        "primary_symptom": "",
-        "response_observed": "",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "User not comfortable proceeding",
+        "last_confirmed_state": "Slides and leveling diagnostic declined",
         "interlock_present": "Unknown",
-        "last_confirmed_state": "Declined capability gate.",
-        "stabilization_actions": [],
+        "primary_symptom": "Unknown",
+        "response_observed": "Unknown",
+        "system_type": "Unknown",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Pause diagnosis and schedule a technician."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "User not comfortable proceeding"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_multiple_systems_affected",
+    "terminal_multiple_systems_affected": {
       "type": "TERMINAL",
       "result": "Slide and leveling systems both affected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Both",
-        "primary_symptom": "Both systems reported affected",
-        "response_observed": "",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "User reported both systems not operating normally",
+        "last_confirmed_state": "Both systems confirmed. Both reported affected",
         "interlock_present": "Unknown",
-        "last_confirmed_state": "Both slide-outs and leveling reported affected.",
+        "primary_symptom": "Both systems reported affected",
+        "response_observed": "Unknown",
+        "system_type": "Both",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Keep people and pets clear of pinch areas.",
           "Do not attempt repeated operation if the RV is unstable."
@@ -183,48 +176,52 @@
         "recommendations": [
           "Schedule a technician to evaluate common power, interlock, or control causes."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "User reported both systems not operating normally"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_slide_no_response",
+    "terminal_slide_no_response": {
       "type": "TERMINAL",
       "result": "Slide shows no response to command",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Slide",
-        "primary_symptom": "Slide will not move at all",
-        "response_observed": "No",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "No click, motor sound, or indicator change observed when attempting slide movement",
+        "last_confirmed_state": "Slide system confirmed. No response observed",
         "interlock_present": "Unknown",
-        "last_confirmed_state": "Slide commanded; no response observed.",
+        "primary_symptom": "Slide will not move at all",
+        "response_observed": "No observable response",
+        "system_type": "Slide",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Keep people and pets clear of pinch areas."
         ],
         "recommendations": [
           "Schedule a technician to evaluate slide control power, switches, and interlocks."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "No click, motor sound, or indicator change observed when attempting slide movement"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_slide_sync_issue",
+    "terminal_slide_sync_issue": {
       "type": "TERMINAL",
       "result": "Slide synchronization or alignment issue suspected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Slide",
-        "primary_symptom": "Slide moves unevenly or crooked",
-        "response_observed": "Yes",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Uneven or crooked slide movement observed",
+        "last_confirmed_state": "Slide system confirmed. Uneven movement observed",
         "interlock_present": "Unknown",
-        "last_confirmed_state": "Uneven slide movement observed.",
+        "primary_symptom": "Slide moves unevenly or crooked",
+        "response_observed": "Uneven movement observed",
+        "system_type": "Slide",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Keep people and pets clear of pinch areas.",
           "Do not travel unless the slide is fully secured per manufacturer guidance."
@@ -232,24 +229,26 @@
         "recommendations": [
           "Schedule a technician to evaluate slide synchronization, drive components, and alignment."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "Uneven or crooked slide movement observed"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_slide_mechanical_issue",
+    "terminal_slide_mechanical_issue": {
       "type": "TERMINAL",
       "result": "Slide mechanical issue suspected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Slide",
-        "primary_symptom": "Slide moves but makes abnormal noises",
-        "response_observed": "Yes",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Abnormal grinding, popping, or banging noises observed during slide movement",
+        "last_confirmed_state": "Slide system confirmed. Abnormal noises observed",
         "interlock_present": "Unknown",
-        "last_confirmed_state": "Abnormal noises during slide movement observed.",
+        "primary_symptom": "Slide moves but makes abnormal noises",
+        "response_observed": "Abnormal noise during movement",
+        "system_type": "Slide",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Stop operation if abnormal noises occur.",
           "Keep people and pets clear of pinch areas."
@@ -257,24 +256,26 @@
         "recommendations": [
           "Schedule a technician to evaluate mechanical binding or component failure."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "Abnormal grinding, popping, or banging noises observed during slide movement"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_slide_interlock_or_control_issue",
+    "terminal_slide_interlock_or_control_issue": {
       "type": "TERMINAL",
       "result": "Slide interlock or control issue suspected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Slide",
-        "primary_symptom": "Slide power or interlock issue",
-        "response_observed": "Yes",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Warning message or indicator present on slide or leveling control panel",
+        "last_confirmed_state": "Slide system confirmed. Warning indicator present",
         "interlock_present": "Yes",
-        "last_confirmed_state": "Warning or indicator present on control panel.",
+        "primary_symptom": "Slide power or interlock issue",
+        "response_observed": "Warning indicator on panel",
+        "system_type": "Slide",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Record the exact warning message for the technician.",
           "Keep people and pets clear of pinch areas."
@@ -282,48 +283,52 @@
         "recommendations": [
           "Schedule a technician to diagnose the interlock condition or control system fault."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "Warning message or indicator present on slide or leveling control panel"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_slide_power_or_motor_issue",
+    "terminal_slide_power_or_motor_issue": {
       "type": "TERMINAL",
       "result": "Slide power or motor issue suspected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Slide",
-        "primary_symptom": "Slide power or motor issue",
-        "response_observed": "Yes",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "No warning indication present but slide does not move normally",
+        "last_confirmed_state": "Slide system confirmed. Not moving normally",
         "interlock_present": "No",
-        "last_confirmed_state": "No warnings; slide not moving normally.",
+        "primary_symptom": "Slide power or motor issue",
+        "response_observed": "Movement attempt but abnormal",
+        "system_type": "Slide",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Keep people and pets clear of pinch areas."
         ],
         "recommendations": [
           "Schedule a technician to evaluate power supply, motor drive, and control outputs."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "No warning indication present but slide does not move normally"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_slide_obstruction_or_load_issue",
+    "terminal_slide_obstruction_or_load_issue": {
       "type": "TERMINAL",
       "result": "Slide obstruction or load issue suspected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Slide",
-        "primary_symptom": "Slide moves partially then stops",
-        "response_observed": "Yes",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Slide stops at the same point and remains square when stopped",
+        "last_confirmed_state": "Slide system confirmed. Stops at same point",
         "interlock_present": "Unknown",
-        "last_confirmed_state": "Slide stops repeatedly at same point; appears square when stopped.",
+        "primary_symptom": "Slide moves partially then stops",
+        "response_observed": "Movement stops at same point",
+        "system_type": "Slide",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Keep people and pets clear of pinch areas.",
           "Avoid repeated operation if movement is restricted."
@@ -331,96 +336,104 @@
         "recommendations": [
           "Schedule a technician to inspect for obstruction, binding, or load-related causes."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "Slide stops at the same point and remains square when stopped"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_leveling_power_issue",
+    "terminal_leveling_power_issue": {
       "type": "TERMINAL",
       "result": "Leveling system power issue suspected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Leveling",
-        "primary_symptom": "System will not start",
-        "response_observed": "No",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "No response from leveling control panel when attempting to start",
+        "last_confirmed_state": "Leveling system confirmed. No panel response",
         "interlock_present": "Unknown",
-        "last_confirmed_state": "Leveling start attempted; no panel response observed.",
+        "primary_symptom": "System will not start",
+        "response_observed": "No panel response",
+        "system_type": "Leveling",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "If the RV is unstable, stop and keep people clear of pinch areas."
         ],
         "recommendations": [
           "Schedule a technician to evaluate leveling power supply and control panel power."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "No response from leveling control panel when attempting to start"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_leveling_sensor_or_interlock_issue",
+    "terminal_leveling_sensor_or_interlock_issue": {
       "type": "TERMINAL",
       "result": "Leveling sensor or interlock issue suspected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Leveling",
-        "primary_symptom": "System starts then stops",
-        "response_observed": "Yes",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Leveling system stops at the same point during each attempt",
+        "last_confirmed_state": "Leveling system confirmed. Stops at same point",
         "interlock_present": "Unknown",
-        "last_confirmed_state": "Leveling stops consistently at same point in cycle.",
+        "primary_symptom": "System starts then stops",
+        "response_observed": "System starts then stops",
+        "system_type": "Leveling",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "If the RV is unstable, stop and keep people clear of pinch areas."
         ],
         "recommendations": [
           "Schedule a technician to diagnose sensors, interlocks, or error conditions."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "Leveling system stops at the same point during each attempt"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_leveling_calibration_or_sensor_issue",
+    "terminal_leveling_calibration_or_sensor_issue": {
       "type": "TERMINAL",
       "result": "Leveling calibration or sensor accuracy issue suspected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Leveling",
-        "primary_symptom": "RV will not level properly",
-        "response_observed": "Yes",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Panel indicates level but RV still feels unlevel",
+        "last_confirmed_state": "Leveling system confirmed. Panel shows level but feels unlevel",
         "interlock_present": "No",
-        "last_confirmed_state": "Panel indicates level; RV still feels unlevel.",
+        "primary_symptom": "RV will not level properly",
+        "response_observed": "Panel shows level indication",
+        "system_type": "Leveling",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "If the RV is unstable, stop and keep people clear of pinch areas."
         ],
         "recommendations": [
           "Schedule a technician to verify sensor calibration and level accuracy."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "Panel indicates level but RV still feels unlevel"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_leveling_interlock_issue",
+    "terminal_leveling_interlock_issue": {
       "type": "TERMINAL",
       "result": "Leveling interlock preventing operation",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Leveling",
-        "primary_symptom": "Manual mode unavailable or interlock present",
-        "response_observed": "Yes",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "Interlock or warning message present on leveling control panel",
+        "last_confirmed_state": "Leveling system confirmed. Interlock message present",
         "interlock_present": "Yes",
-        "last_confirmed_state": "Interlock or warning message present on leveling control panel.",
+        "primary_symptom": "Manual mode unavailable or interlock present",
+        "response_observed": "Interlock message on panel",
+        "system_type": "Leveling",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Record the exact warning message for the technician.",
           "If the RV is unstable, stop and keep people clear of pinch areas."
@@ -428,34 +441,34 @@
         "recommendations": [
           "Schedule a technician to diagnose the interlock condition."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "Interlock or warning message present on leveling control panel"
+        "notes": ""
       }
     },
-    {
-      "id": "terminal_leveling_hydraulic_or_motor_issue",
+    "terminal_leveling_hydraulic_or_motor_issue": {
       "type": "TERMINAL",
       "result": "Leveling hydraulic or motor issue suspected",
       "artifact": {
         "issue": "Slides and Leveling Systems",
         "flow_id": "flow_4_slides_leveling_issue",
         "flow_version": "2.0",
-        "system_type": "Leveling",
-        "primary_symptom": "Leveling hydraulic or motor issue",
-        "response_observed": "Yes",
+        "artifact_schema_version": "1.0",
+        "stop_reason": "No interlock indication present but leveling system does not operate normally",
+        "last_confirmed_state": "Leveling system confirmed. Not operating normally",
         "interlock_present": "No",
-        "last_confirmed_state": "No warnings; leveling does not operate normally.",
+        "primary_symptom": "Leveling hydraulic or motor issue",
+        "response_observed": "System responds but abnormal",
+        "system_type": "Leveling",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "If the RV is unstable, stop and keep people clear of pinch areas."
         ],
         "recommendations": [
           "Schedule a technician to evaluate leveling actuators, motors, or hydraulic system operation."
         ],
-        "safety_notes": "",
-        "notes": "",
-        "stop_reason": "No interlock indication present but leveling system does not operate normally"
+        "notes": ""
       }
     }
-  ]
+  }
 }

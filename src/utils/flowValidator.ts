@@ -1,24 +1,3 @@
-/**
- * FlowValidator.ts
- *
- * Validates raw flow JSON directly — no normaliser required.
- *
- * Handles all schema variations across Flows 1–4:
- *   - Top-level keys: flowId, flowVersion, startNode  (camelCase, as authored)
- *   - nodes: {} dict format  (Flows 1 & 2)
- *   - nodes: [] array format (Flows 3 & 4, each node has an "id" field)
- *   - SAFETY uses "next" field (all flows, after JSON fix)
- *
- * Required artifact fields (universal contract across all flows):
- *   flow_id, flow_version, issue, stop_reason, last_confirmed_state, safety_notes
- *
- * Optional artifact fields (validated for correct type when present):
- *   stabilization_actions, recommendations, notes
- *
- * Flow-specific artifact fields are not validated for presence — only the
- * universal contract is enforced.
- */
-
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface RawFlow {
@@ -26,11 +5,10 @@ export interface RawFlow {
   flowVersion: string;
   startNode: string;
   title?: string;
-  nodes: Record<string, RawFlowNode> | RawFlowNode[];
+  nodes: Record<string, RawFlowNode>;  // MUST be object, array format is rejected
 }
 
 export interface RawFlowNode {
-  id?: string;       // present when nodes is an array (Flows 3 & 4)
   type: string;
   [key: string]: unknown;
 }
@@ -67,7 +45,7 @@ export interface FlowArtifact {
   issue: string;
   stop_reason: string;
   last_confirmed_state: string;
-  safety_notes: string;
+  safety_notes: string[];
   // Optional common fields
   stabilization_actions?: string[];
   recommendations?: string[];
@@ -141,10 +119,9 @@ export class FlowValidator {
 
   static validate(raw: RawFlow): void {
     this.validateTopLevel(raw);
-    const nodes = this.resolveNodes(raw);
-    this.validateNodes(nodes);
-    this.validateReachability(raw.startNode, nodes);
-    this.validateHasTerminal(nodes);
+    this.validateNodes(raw.nodes);
+    this.validateReachability(raw.startNode, raw.nodes);
+    this.validateHasTerminal(raw.nodes);
   }
 
   // ── Top-level ──────────────────────────────────────────────────────────────
@@ -159,43 +136,30 @@ export class FlowValidator {
     if (!raw.startNode || typeof raw.startNode !== 'string') {
       throw new FlowValidationError('Flow must have a string "startNode"');
     }
-    if (!raw.nodes || typeof raw.nodes !== 'object') {
-      throw new FlowValidationError('Flow must have a "nodes" object or array');
+    if (!raw.nodes) {
+      throw new FlowValidationError('Flow must have a "nodes" field');
     }
-    const nodes = this.resolveNodes(raw);
-    if (Object.keys(nodes).length === 0) {
+    
+    // CRITICAL: Enforce dict format only, reject arrays
+    if (Array.isArray(raw.nodes)) {
+      throw new FlowValidationError(
+        'Flow "nodes" must be an object (dictionary) keyed by node ID. ' +
+        'Array format is not allowed. Convert to: { "node_id": { "type": "...", ... }, ... }'
+      );
+    }
+    
+    if (typeof raw.nodes !== 'object') {
+      throw new FlowValidationError('Flow "nodes" must be an object');
+    }
+    
+    if (Object.keys(raw.nodes).length === 0) {
       throw new FlowValidationError('"nodes" must not be empty');
     }
-    if (!nodes[raw.startNode]) {
+    if (!raw.nodes[raw.startNode]) {
       throw new FlowValidationError(
         `"startNode" value "${raw.startNode}" does not exist in nodes`
       );
     }
-  }
-
-  // ── Resolve nodes (dict or array) ──────────────────────────────────────────
-
-  /**
-   * Accepts both formats used across flows:
-   *   Dict format (Flows 1 & 2): { nodeId: { type, ... }, ... }
-   *   Array format (Flows 3 & 4): [ { id: "nodeId", type, ... }, ... ]
-   * Returns a unified dict keyed by node ID in both cases.
-   */
-  static resolveNodes(raw: RawFlow): Record<string, RawFlowNode> {
-    if (Array.isArray(raw.nodes)) {
-      const dict: Record<string, RawFlowNode> = {};
-      for (const node of raw.nodes) {
-        if (!node.id || typeof node.id !== 'string') {
-          throw new FlowValidationError(
-            `Node in array-format flow is missing an "id" field: ${JSON.stringify(node)}`
-          );
-        }
-        const { id, ...body } = node;
-        dict[id] = body as RawFlowNode;
-      }
-      return dict;
-    }
-    return raw.nodes as Record<string, RawFlowNode>;
   }
 
   // ── Per-node dispatch ──────────────────────────────────────────────────────

@@ -3,9 +3,8 @@
   "flowVersion": "2.0",
   "title": "Propane System Issue",
   "startNode": "capability_gate_propane",
-  "nodes": [
-    {
-      "id": "capability_gate_propane",
+  "nodes": {
+    "capability_gate_propane": {
       "type": "QUESTION",
       "text": "You may be asked to observe appliance settings, indicator lights, and visible valve positions using normal controls. You will not be asked to loosen fittings, disconnect hoses, remove panels, or perform repairs. Are you comfortable proceeding?",
       "answers": {
@@ -13,14 +12,12 @@
         "no": "terminal_capability_declined"
       }
     },
-    {
-      "id": "safety_check_propane_hazard",
+    "safety_check_propane_hazard": {
       "type": "SAFETY",
       "text": "If you smell propane, hear hissing, or suspect an active gas leak, stop immediately. Do not operate propane appliances or electrical switches. Move to fresh air and contact a technician or emergency services as appropriate. Tap Continue only if no odor or leak is present.",
       "next": "propane_odor_present_check"
     },
-    {
-      "id": "propane_odor_present_check",
+    "propane_odor_present_check": {
       "type": "QUESTION",
       "text": "Right now, do you smell propane, hear hissing, or suspect a leak?",
       "answers": {
@@ -29,8 +26,7 @@
         "not_sure": "terminal_active_leak_uncertain"
       }
     },
-    {
-      "id": "propane_level_known_check",
+    "propane_level_known_check": {
       "type": "QUESTION",
       "text": "Do you know that your propane tank has fuel available?",
       "answers": {
@@ -39,8 +35,7 @@
         "not_sure": "terminal_propane_level_unknown"
       }
     },
-    {
-      "id": "tank_valve_position_check",
+    "tank_valve_position_check": {
       "type": "QUESTION",
       "text": "Is the propane tank service valve fully open?",
       "answers": {
@@ -49,8 +44,7 @@
         "not_sure": "terminal_tank_valve_unknown"
       }
     },
-    {
-      "id": "affected_appliances_scope",
+    "affected_appliances_scope": {
       "type": "QUESTION",
       "text": "Which propane appliances are affected?",
       "answers": {
@@ -59,8 +53,7 @@
         "not_sure": "individual_appliance_identification"
       }
     },
-    {
-      "id": "system_wide_recent_working_check",
+    "system_wide_recent_working_check": {
       "type": "QUESTION",
       "text": "Have any propane appliances worked normally since this issue began?",
       "answers": {
@@ -69,8 +62,7 @@
         "not_sure": "terminal_system_wide_uncertain"
       }
     },
-    {
-      "id": "individual_appliance_identification",
+    "individual_appliance_identification": {
       "type": "QUESTION",
       "text": "Which appliance is not working on propane?",
       "answers": {
@@ -81,8 +73,7 @@
         "more_than_one_appliance": "terminal_multiple_appliance_issue"
       }
     },
-    {
-      "id": "stove_behavior_check",
+    "stove_behavior_check": {
       "type": "QUESTION",
       "text": "When you normally try to use the stove on propane, do the burners ignite and stay lit?",
       "answers": {
@@ -91,8 +82,7 @@
         "not_sure": "terminal_stove_not_igniting_on_propane"
       }
     },
-    {
-      "id": "water_heater_behavior_check",
+    "water_heater_behavior_check": {
       "type": "QUESTION",
       "text": "When the water heater is set to propane mode, does it indicate normal operation or ignition?",
       "answers": {
@@ -101,8 +91,7 @@
         "not_sure": "terminal_water_heater_propane_issue"
       }
     },
-    {
-      "id": "furnace_behavior_check",
+    "furnace_behavior_check": {
       "type": "QUESTION",
       "text": "When the furnace calls for heat, does it attempt ignition or produce warm air?",
       "answers": {
@@ -111,8 +100,7 @@
         "not_sure": "terminal_furnace_propane_issue"
       }
     },
-    {
-      "id": "refrigerator_behavior_check",
+    "refrigerator_behavior_check": {
       "type": "QUESTION",
       "text": "When the refrigerator is set to propane mode, does it indicate normal operation?",
       "answers": {
@@ -121,48 +109,55 @@
         "not_sure": "terminal_refrigerator_propane_issue"
       }
     },
-    {
-      "id": "terminal_capability_declined",
+    "terminal_capability_declined": {
       "type": "TERMINAL",
       "result": "User declined diagnostic requirements",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "User not comfortable proceeding",
-        "last_confirmed_state": "Declined capability gate.",
+        "last_confirmed_state": "Propane system diagnostic declined",
+        "affected_appliances_scope": "Unknown",
+        "appliance_behavior_observed": "Unknown",
+        "appliance_selected": "Unknown",
         "propane_hazard_observed": "Unknown",
         "propane_level_known": "Unknown",
         "propane_level_status": "Unknown",
         "tank_valve_position": "Unknown",
-        "affected_appliances_scope": "Unknown",
-        "appliance_selected": "Unknown",
-        "appliance_behavior_observed": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Pause diagnosis and schedule a technician."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_active_leak_suspected",
+    "terminal_active_leak_suspected": {
       "type": "TERMINAL",
       "result": "Active propane leak suspected",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "User reported odor, hissing, or suspected leak",
-        "last_confirmed_state": "Hazard suspected at entry.",
+        "last_confirmed_state": "Hazard suspected at entry",
+        "affected_appliances_scope": "Unknown",
+        "appliance_behavior_observed": "Unknown",
+        "appliance_selected": "Unknown",
         "propane_hazard_observed": "Yes",
         "propane_level_known": "Unknown",
         "propane_level_status": "Unknown",
         "tank_valve_position": "Unknown",
-        "affected_appliances_scope": "Unknown",
-        "appliance_selected": "Unknown",
-        "appliance_behavior_observed": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Do not operate propane appliances or electrical switches.",
           "Move to fresh air and keep people away from the RV until help arrives."
@@ -170,386 +165,443 @@
         "recommendations": [
           "Contact a technician or emergency services as appropriate."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_active_leak_uncertain",
+    "terminal_active_leak_uncertain": {
       "type": "TERMINAL",
       "result": "Possible propane hazard not ruled out",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "User not sure whether odor, hissing, or leak is present",
-        "last_confirmed_state": "Hazard not ruled out.",
+        "last_confirmed_state": "Hazard not ruled out",
+        "affected_appliances_scope": "Unknown",
+        "appliance_behavior_observed": "Unknown",
+        "appliance_selected": "Unknown",
         "propane_hazard_observed": "Unknown",
         "propane_level_known": "Unknown",
         "propane_level_status": "Unknown",
         "tank_valve_position": "Unknown",
-        "affected_appliances_scope": "Unknown",
-        "appliance_selected": "Unknown",
-        "appliance_behavior_observed": "",
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
         "stabilization_actions": [
           "Do not operate propane appliances until the hazard is ruled out."
         ],
         "recommendations": [
           "Contact a technician for guidance or inspection."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_propane_level_unknown",
+    "terminal_propane_level_unknown": {
       "type": "TERMINAL",
       "result": "Propane fuel level not confirmed",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "User unable to confirm propane availability",
-        "last_confirmed_state": "Propane availability unknown.",
+        "last_confirmed_state": "Fuel level unknown",
+        "affected_appliances_scope": "Unknown",
+        "appliance_behavior_observed": "Unknown",
+        "appliance_selected": "Unknown",
         "propane_hazard_observed": "No",
         "propane_level_known": "No",
         "propane_level_status": "Unknown",
         "tank_valve_position": "Unknown",
-        "affected_appliances_scope": "Unknown",
-        "appliance_selected": "Unknown",
-        "appliance_behavior_observed": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician if appliances cannot operate on propane."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_tank_valve_closed",
+    "terminal_tank_valve_closed": {
       "type": "TERMINAL",
       "result": "Propane tank service valve not open",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "Service valve reported closed",
-        "last_confirmed_state": "Tank service valve closed.",
+        "last_confirmed_state": "Tank valve closed",
+        "affected_appliances_scope": "Unknown",
+        "appliance_behavior_observed": "Unknown",
+        "appliance_selected": "Unknown",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Closed",
-        "affected_appliances_scope": "Unknown",
-        "appliance_selected": "Unknown",
-        "appliance_behavior_observed": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "If you are unsure of valve position or the issue persists, schedule a technician."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_tank_valve_unknown",
+    "terminal_tank_valve_unknown": {
       "type": "TERMINAL",
       "result": "Propane tank valve position unknown",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "User unable to confirm valve position",
-        "last_confirmed_state": "Tank valve position unknown.",
+        "last_confirmed_state": "Valve position unknown",
+        "affected_appliances_scope": "Unknown",
+        "appliance_behavior_observed": "Unknown",
+        "appliance_selected": "Unknown",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Unknown",
-        "affected_appliances_scope": "Unknown",
-        "appliance_selected": "Unknown",
-        "appliance_behavior_observed": "",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician to confirm supply and valve status."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_system_wide_propane_issue_suspected",
+    "terminal_system_wide_propane_issue_suspected": {
       "type": "TERMINAL",
       "result": "System-wide propane supply or regulation issue suspected",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "No propane appliances operating on propane",
-        "last_confirmed_state": "All appliances affected; none working since issue began.",
+        "last_confirmed_state": "All appliances affected",
+        "affected_appliances_scope": "All",
+        "appliance_behavior_observed": "No appliances working since issue began",
+        "appliance_selected": "Unknown",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "All",
-        "appliance_selected": "Unknown",
-        "appliance_behavior_observed": "No appliances working since issue began",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician to diagnose the propane supply and regulation system."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_system_wide_uncertain",
+    "terminal_system_wide_uncertain": {
       "type": "TERMINAL",
       "result": "System-wide propane issue not confirmed",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "User unsure whether any appliances have worked since issue began",
-        "last_confirmed_state": "All appliances affected; prior operation uncertain.",
+        "last_confirmed_state": "Prior operation uncertain",
+        "affected_appliances_scope": "All",
+        "appliance_behavior_observed": "Uncertain whether any appliances worked since issue began",
+        "appliance_selected": "Unknown",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "All",
-        "appliance_selected": "Unknown",
-        "appliance_behavior_observed": "Uncertain whether any appliances worked since issue began",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician if propane appliances cannot operate normally."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_multiple_appliance_issue",
+    "terminal_multiple_appliance_issue": {
       "type": "TERMINAL",
       "result": "Multiple propane appliances affected",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "More than one appliance reported not operating on propane",
-        "last_confirmed_state": "Multiple appliances affected.",
+        "last_confirmed_state": "Multiple appliances affected",
+        "affected_appliances_scope": "Multiple",
+        "appliance_behavior_observed": "Multiple appliances not operating on propane",
+        "appliance_selected": "Multiple",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "Multiple",
-        "appliance_selected": "Multiple",
-        "appliance_behavior_observed": "Multiple appliances not operating on propane",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician to diagnose common propane supply and control causes."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_stove_operational_on_propane",
+    "terminal_stove_operational_on_propane": {
       "type": "TERMINAL",
       "result": "Stove operates normally on propane",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "Stove confirmed operational on propane",
-        "last_confirmed_state": "Stove operates on propane.",
+        "last_confirmed_state": "Stove operates normally",
+        "affected_appliances_scope": "Single",
+        "appliance_behavior_observed": "Burners ignite and stay lit on propane",
+        "appliance_selected": "Stove",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "Single",
-        "appliance_selected": "Stove",
-        "appliance_behavior_observed": "Burners ignite and stay lit on propane",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "If other appliances still fail on propane, schedule a technician for appliance-specific diagnosis."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_stove_not_igniting_on_propane",
+    "terminal_stove_not_igniting_on_propane": {
       "type": "TERMINAL",
       "result": "Stove not igniting on propane",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "Stove does not ignite or stay lit on propane",
-        "last_confirmed_state": "Stove not igniting on propane.",
+        "last_confirmed_state": "Stove not igniting",
+        "affected_appliances_scope": "Single",
+        "appliance_behavior_observed": "Burners do not ignite or stay lit on propane",
+        "appliance_selected": "Stove",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "Single",
-        "appliance_selected": "Stove",
-        "appliance_behavior_observed": "Burners do not ignite or stay lit on propane",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician to diagnose propane delivery or stove ignition."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_water_heater_operational_on_propane",
+    "terminal_water_heater_operational_on_propane": {
       "type": "TERMINAL",
       "result": "Water heater operates normally on propane",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "Water heater confirmed operational on propane",
-        "last_confirmed_state": "Water heater operates on propane.",
+        "last_confirmed_state": "Water heater operates normally",
+        "affected_appliances_scope": "Single",
+        "appliance_behavior_observed": "Water heater indicates normal operation or ignition on propane mode",
+        "appliance_selected": "Water heater",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "Single",
-        "appliance_selected": "Water heater",
-        "appliance_behavior_observed": "Water heater indicates normal operation or ignition on propane mode",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "If other appliances still fail on propane, schedule a technician for appliance-specific diagnosis."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_water_heater_propane_issue",
+    "terminal_water_heater_propane_issue": {
       "type": "TERMINAL",
       "result": "Water heater propane operation issue",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "Water heater not operating on propane",
-        "last_confirmed_state": "Water heater fails on propane.",
+        "last_confirmed_state": "Water heater fails",
+        "affected_appliances_scope": "Single",
+        "appliance_behavior_observed": "Water heater does not indicate normal operation or ignition on propane mode",
+        "appliance_selected": "Water heater",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "Single",
-        "appliance_selected": "Water heater",
-        "appliance_behavior_observed": "Water heater does not indicate normal operation or ignition on propane mode",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician to diagnose water heater propane operation."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_furnace_operational_on_propane",
+    "terminal_furnace_operational_on_propane": {
       "type": "TERMINAL",
       "result": "Furnace operates normally on propane",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "Furnace confirmed operational on propane",
-        "last_confirmed_state": "Furnace operates on propane.",
+        "last_confirmed_state": "Furnace operates normally",
+        "affected_appliances_scope": "Single",
+        "appliance_behavior_observed": "Furnace attempts ignition or produces warm air when calling for heat",
+        "appliance_selected": "Furnace",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "Single",
-        "appliance_selected": "Furnace",
-        "appliance_behavior_observed": "Furnace attempts ignition or produces warm air when calling for heat",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "If other appliances still fail on propane, schedule a technician for appliance-specific diagnosis."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_furnace_propane_issue",
+    "terminal_furnace_propane_issue": {
       "type": "TERMINAL",
       "result": "Furnace propane operation issue",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "Furnace not operating on propane",
-        "last_confirmed_state": "Furnace fails on propane.",
+        "last_confirmed_state": "Furnace fails",
+        "affected_appliances_scope": "Single",
+        "appliance_behavior_observed": "Furnace does not attempt ignition or produce warm air when calling for heat",
+        "appliance_selected": "Furnace",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "Single",
-        "appliance_selected": "Furnace",
-        "appliance_behavior_observed": "Furnace does not attempt ignition or produce warm air when calling for heat",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician to diagnose furnace propane operation."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_refrigerator_operational_on_propane",
+    "terminal_refrigerator_operational_on_propane": {
       "type": "TERMINAL",
       "result": "Refrigerator operates normally on propane",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "Refrigerator confirmed operational on propane",
-        "last_confirmed_state": "Refrigerator operates on propane.",
+        "last_confirmed_state": "Refrigerator operates normally",
+        "affected_appliances_scope": "Single",
+        "appliance_behavior_observed": "Refrigerator indicates normal operation on propane mode",
+        "appliance_selected": "Refrigerator",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "Single",
-        "appliance_selected": "Refrigerator",
-        "appliance_behavior_observed": "Refrigerator indicates normal operation on propane mode",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "If other appliances still fail on propane, schedule a technician for appliance-specific diagnosis."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     },
-    {
-      "id": "terminal_refrigerator_propane_issue",
+    "terminal_refrigerator_propane_issue": {
       "type": "TERMINAL",
       "result": "Refrigerator propane operation issue",
       "artifact": {
         "issue": "Propane System Issue",
         "flow_id": "flow_3_propane_system_issue",
         "flow_version": "2.0",
+        "artifact_schema_version": "1.0",
         "stop_reason": "Refrigerator not operating on propane",
-        "last_confirmed_state": "Refrigerator fails on propane.",
+        "last_confirmed_state": "Refrigerator fails",
+        "affected_appliances_scope": "Single",
+        "appliance_behavior_observed": "Refrigerator does not indicate normal operation on propane mode",
+        "appliance_selected": "Refrigerator",
         "propane_hazard_observed": "No",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
-        "affected_appliances_scope": "Single",
-        "appliance_selected": "Refrigerator",
-        "appliance_behavior_observed": "Refrigerator does not indicate normal operation on propane mode",
-        "stabilization_actions": [],
+        "safety_notes": [
+          "No immediate safety hazards identified during guided observation."
+        ],
+        "stabilization_actions": [
+          "Avoid further operation until evaluated by a technician."
+        ],
         "recommendations": [
           "Schedule a technician to diagnose refrigerator propane operation."
         ],
-        "safety_notes": "",
         "notes": ""
       }
     }
-  ]
+  }
 }
