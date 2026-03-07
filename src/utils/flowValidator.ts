@@ -1,5 +1,3 @@
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface RawFlow {
   flowId: string;
   flowVersion: string;
@@ -40,13 +38,15 @@ export interface MeasureNode extends RawFlowNode {
 
 export interface FlowArtifact {
   // Universal required fields
+  vertical_id: string;  // Added for MS5 - required in all flows
   flow_id: string;
   flow_version: string;
+  artifact_schema_version: string;
   issue: string;
   stop_reason: string;
   last_confirmed_state: string;
   safety_notes: string[];
-  // Optional common fields
+  // Optional fields (will be populated with defaults by ArtifactFinalizer if missing)
   stabilization_actions?: string[];
   recommendations?: string[];
   notes?: string;
@@ -318,10 +318,17 @@ export class FlowValidator {
   }
 
   private static validateArtifact(nodeId: string, artifact: FlowArtifact): void {
-    const required: (keyof FlowArtifact)[] = [
-      'flow_id', 'flow_version', 'issue', 'stop_reason', 'last_confirmed_state', 'safety_notes',
+    // Required string fields
+    const requiredStrings: (keyof FlowArtifact)[] = [
+      'vertical_id',  // Added for MS5
+      'flow_id', 
+      'flow_version', 
+      'artifact_schema_version', 
+      'issue', 
+      'stop_reason', 
+      'last_confirmed_state',
     ];
-    for (const field of required) {
+    for (const field of requiredStrings) {
       if (artifact[field] === undefined || artifact[field] === null) {
         throw new FlowValidationError(
           `TERMINAL node "${nodeId}" artifact missing required field "${field}"`
@@ -333,38 +340,61 @@ export class FlowValidator {
         );
       }
     }
-    if (artifact.stabilization_actions !== undefined) {
-      if (!Array.isArray(artifact.stabilization_actions)) {
+    
+    // Required array fields
+    const requiredArrays: (keyof FlowArtifact)[] = [
+      'safety_notes',
+    ];
+    for (const field of requiredArrays) {
+      if (artifact[field] === undefined || artifact[field] === null) {
         throw new FlowValidationError(
-          `TERMINAL node "${nodeId}" artifact "stabilization_actions" must be an array when present`
+          `TERMINAL node "${nodeId}" artifact missing required field "${field}"`
         );
       }
-      for (const item of artifact.stabilization_actions) {
+      if (!Array.isArray(artifact[field])) {
+        throw new FlowValidationError(
+          `TERMINAL node "${nodeId}" artifact field "${field}" must be an array`
+        );
+      }
+      // Validate array contains only strings
+      for (const item of artifact[field] as unknown[]) {
         if (typeof item !== 'string') {
           throw new FlowValidationError(
-            `TERMINAL node "${nodeId}" artifact "stabilization_actions" must contain only strings`
+            `TERMINAL node "${nodeId}" artifact "${field}" must contain only strings`
           );
         }
       }
     }
-    if (artifact.recommendations !== undefined) {
-      if (!Array.isArray(artifact.recommendations)) {
-        throw new FlowValidationError(
-          `TERMINAL node "${nodeId}" artifact "recommendations" must be an array when present`
-        );
-      }
-      for (const item of artifact.recommendations) {
-        if (typeof item !== 'string') {
+    
+    // Optional array fields - validate type if present
+    const optionalArrays: (keyof FlowArtifact)[] = [
+      'stabilization_actions',
+      'recommendations',
+    ];
+    for (const field of optionalArrays) {
+      if (artifact[field] !== undefined && artifact[field] !== null) {
+        if (!Array.isArray(artifact[field])) {
           throw new FlowValidationError(
-            `TERMINAL node "${nodeId}" artifact "recommendations" must contain only strings`
+            `TERMINAL node "${nodeId}" artifact field "${field}" must be an array if present`
           );
+        }
+        for (const item of artifact[field] as unknown[]) {
+          if (typeof item !== 'string') {
+            throw new FlowValidationError(
+              `TERMINAL node "${nodeId}" artifact "${field}" must contain only strings`
+            );
+          }
         }
       }
     }
-    if (artifact.notes !== undefined && typeof artifact.notes !== 'string') {
-      throw new FlowValidationError(
-        `TERMINAL node "${nodeId}" artifact "notes" must be a string when present`
-      );
+    
+    // Optional string field - validate type if present
+    if (artifact.notes !== undefined && artifact.notes !== null) {
+      if (typeof artifact.notes !== 'string') {
+        throw new FlowValidationError(
+          `TERMINAL node "${nodeId}" artifact field "notes" must be a string if present`
+        );
+      }
     }
   }
 

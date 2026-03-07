@@ -1,5 +1,8 @@
 import { SessionState, SessionEvent, SessionSummary } from '../types';
 import { StorageService } from './StorageService';
+import { ArtifactFinalizationService } from './Artifactfinalizationservice';
+import { ArtifactIdGenerator } from './ArtifactIdGenerator';
+import { createMMKV } from 'react-native-mmkv';
 import {
   RawFlow,
   RawFlowNode,
@@ -27,13 +30,18 @@ export class FlowEngineError extends Error {
 export class FlowEngine {
   private flow: RawFlow;
   private nodes: Record<string, RawFlowNode>;
+  private artifactService: ArtifactFinalizationService;
 
   constructor(rawFlow: unknown) {
     try {
-      // Validate raw flow JSON directly — validator enforces dict-only nodes
+      // Validate raw flow JSON directly
       FlowValidator.validate(rawFlow as RawFlow);
-      this.flow  = rawFlow as RawFlow;
-      this.nodes = this.flow.nodes;  // Already guaranteed to be dict by validator
+      this.flow = rawFlow as RawFlow;
+      this.nodes = this.flow.nodes;
+      
+      // Initialize MS5 artifact finalization service
+      const storage = createMMKV({ id: 'rv-diagnostic-engine' });
+      this.artifactService = new ArtifactFinalizationService(storage);
     } catch (error) {
       if (error instanceof FlowValidationError) throw error;
       throw new FlowEngineError(`Invalid flow definition: ${error}`);
@@ -44,16 +52,25 @@ export class FlowEngine {
 
   startSession(): SessionState {
     try {
+      const artifactId = ArtifactIdGenerator.generate();
+      
       const sessionState: SessionState = {
-        flow_id:          this.flow.flowId,
-        flow_version:     this.flow.flowVersion,
-        session_id:       this.generateSessionId(),
-        started_at:       new Date().toISOString(),
-        current_node_id:  this.flow.startNode,
-        events:           [],
-        completed:        false,
-        stopped:          false,
+        flow_id: this.flow.flowId,
+        flow_version: this.flow.flowVersion,
+        session_id: this.generateSessionId(),
+        artifact_id: artifactId,
+        started_at: new Date().toISOString(),
+        current_node_id: this.flow.startNode,
+        events: [],
+        completed: false,
+        stopped: false,
+        stop_reason: '',
+        executed_nodes: [],
+        last_confirmed_state: '',
+        answers: {},
+        measurements: {},
       };
+      
       StorageService.saveSessionState(sessionState);
       return sessionState;
     } catch (error) {
@@ -90,14 +107,6 @@ export class FlowEngine {
 
   // ─── Response processing ──────────────────────────────────────────────────
 
-  /**
-   * Processes a user response for the current node and advances session state.
-   *
-   * @param sessionState  Current session state
-   * @param value         QUESTION: answer key string (e.g. "yes", "not_sure", "shore_power")
-   *                      SAFETY:   any truthy value (user tapped Continue)
-   *                      MEASURE:  numeric value as number or numeric string
-   */
   processResponse(
     sessionState: SessionState,
     value: string | number | boolean
@@ -107,18 +116,23 @@ export class FlowEngine {
       this.validateResponse(currentNode, value);
 
       const event: SessionEvent = {
-        node_id:   sessionState.current_node_id,
-        type:      currentNode.type as SessionEvent['type'],
+        node_id: sessionState.current_node_id,
+        type: currentNode.type as SessionEvent['type'],
         value,
         timestamp: new Date().toISOString(),
       };
 
-      // ── TERMINAL reached directly ────────────────────────────────────────
+      const executedNode = {
+        node_id: sessionState.current_node_id,
+        node_type: currentNode.type,
+        executed_at: new Date().toISOString(),
+        value,
+      };
+
       if (currentNode.type === 'TERMINAL') {
         return this.processTerminalNode(sessionState, currentNode as TerminalNode, event);
       }
 
-      // ── Resolve next node id ─────────────────────────────────────────────
       let nextNodeId: string;
 
       switch (currentNode.type) {
@@ -128,11 +142,12 @@ export class FlowEngine {
           const next = q.answers[answerKey];
           if (!next) {
             throw new FlowEngineError(
-              `QUESTION node "${sessionState.current_node_id}" has no answer for "${answerKey}". ` +
-              `Valid keys: ${Object.keys(q.answers).join(', ')}`
+              `QUESTION node "${sessionState.current_node_id}" has no answer for "${answerKey}"`
             );
           }
           nextNodeId = next;
+          
+          sessionState.answers[sessionState.current_node_id] = answerKey;
           break;
         }
         case 'SAFETY': {
@@ -150,26 +165,27 @@ export class FlowEngine {
           const resolved = resolveMeasureBranch(m.branches, numValue);
           if (!resolved) {
             throw new FlowEngineError(
-              `MEASURE node "${sessionState.current_node_id}": no branch matched value ${numValue}. ` +
-              `Branches: ${m.branches.map(b => b.condition).join(', ')}`
+              `MEASURE node "${sessionState.current_node_id}": no branch matched value ${numValue}`
             );
           }
           nextNodeId = resolved;
+          
+          sessionState.measurements[sessionState.current_node_id] = numValue;
           break;
         }
         default:
           throw new FlowEngineError(`Unhandled node type: "${currentNode.type}"`);
       }
 
-      // ── Advance state ────────────────────────────────────────────────────
       const updatedState: SessionState = {
         ...sessionState,
         current_node_id: nextNodeId,
         events: [...sessionState.events, event],
+        executed_nodes: [...sessionState.executed_nodes, executedNode],  // MS5: Track execution
       };
+      
       StorageService.saveSessionState(updatedState);
 
-      // Auto-process TERMINAL nodes (they require no user input)
       const nextNode = this.nodes[nextNodeId];
       if (nextNode?.type === 'TERMINAL') {
         return this.processTerminalNode(updatedState, nextNode as TerminalNode);
@@ -182,26 +198,56 @@ export class FlowEngine {
     }
   }
 
+
+  private processTerminalNode(
+    sessionState: SessionState,
+    terminalNode: TerminalNode,
+    incomingEvent?: SessionEvent
+  ): SessionState {
+    const event: SessionEvent = incomingEvent ?? {
+      node_id: sessionState.current_node_id,
+      type: 'TERMINAL',
+      value: true,
+      timestamp: new Date().toISOString(),
+    };
+
+    // MS5: Set required fields before finalization
+    sessionState.stop_reason = 'User completed diagnostic';
+    sessionState.last_confirmed_state = terminalNode.result;
+
+    // MS5: Finalize artifact using ArtifactFinalizationService
+    const finalizationResult = this.artifactService.finalizeArtifact(
+      sessionState,
+      terminalNode
+    );
+
+    const completedState: SessionState = {
+      ...sessionState,
+      events: [...sessionState.events, event],
+      completed: true,
+      stopped: false,
+      completed_at: new Date().toISOString(),
+      terminal_node_id: sessionState.current_node_id,
+      result: terminalNode.result,
+      artifact: finalizationResult.finalization_result.final_artifact as FlowArtifact,
+    };
+
+    StorageService.saveSessionState(completedState);
+    this.generateSummary(completedState);
+    return completedState;
+  }
+
   // ─── STOP ─────────────────────────────────────────────────────────────────
 
-  /**
-   * Stops the session at the current node and produces a valid partial artifact.
-   *
-   * All flow-specific fields already collected are preserved from session events.
-   * Fields not yet reached default to "Unknown".
-   *
-   * Satisfies the canonical pack requirement:
-   *   "STOP must be available at any point and always produces an artifact"
-   */
   stopSession(sessionState: SessionState): SessionState {
     try {
       const partialArtifact = this.buildStopArtifact(sessionState);
 
       const stoppedState: SessionState = {
         ...sessionState,
-        stopped:          true,
-        stopped_at:       new Date().toISOString(),
-        stop_node_id:     sessionState.current_node_id,
+        stopped: true,
+        stopped_at: new Date().toISOString(),
+        stop_node_id: sessionState.current_node_id,
         partial_artifact: partialArtifact,
       };
 
@@ -213,40 +259,16 @@ export class FlowEngine {
     }
   }
 
-  /**
-   * Builds a partial artifact for a mid-flow STOP.
-   *
-   * Uses the first terminal node's artifact as a field template to get the
-   * full set of flow-specific field names, then:
-   *   1. Sets all fields to "Unknown" / [] as appropriate
-   *   2. Restores universal fields with STOP-specific values
-   *   3. Resolves template variables ({{node_id.value}}) via interpolateArtifact
-   */
   private buildStopArtifact(sessionState: SessionState): FlowArtifact {
     const template = this.getTemplateArtifact();
 
-    // Start from template, default every non-universal field to "Unknown"
     const artifact: Record<string, unknown> = { ...template };
-    const universalFields = new Set([
-      'flow_id', 'flow_version', 'artifact_schema_version', 'issue', 
-      'stop_reason', 'last_confirmed_state', 'safety_notes', 
-      'stabilization_actions', 'recommendations', 'notes',
-    ]);
-
-    for (const key of Object.keys(artifact)) {
-      if (!universalFields.has(key)) {
-        artifact[key] = Array.isArray(template[key as keyof FlowArtifact]) ? [] : 'Unknown';
-      }
-    }
-
-    // Set STOP-specific universal fields
-    artifact['stop_reason'] =
-      `User stopped diagnostic at node: ${sessionState.current_node_id}`;
-    artifact['last_confirmed_state'] =
-      this.buildLastConfirmedState(sessionState);
+    
+    artifact['stop_reason'] = `User stopped diagnostic at node: ${sessionState.current_node_id}`;
+    artifact['last_confirmed_state'] = this.buildLastConfirmedState(sessionState);
     artifact['safety_notes'] = [];
 
-    // Use interpolateArtifact to resolve all {{...}} placeholders with captured values
+    // Use interpolateArtifact to resolve placeholders
     const resolvedArtifact = this.interpolateArtifact(sessionState, artifact);
 
     return resolvedArtifact as FlowArtifact;
@@ -270,19 +292,19 @@ export class FlowEngine {
         return { ...(node as TerminalNode).artifact };
       }
     }
-    // Validator guarantees at least one TERMINAL — this is a safety fallback only
     return {
-      flow_id:              this.flow.flowId,
-      flow_version:         this.flow.flowVersion,
-      issue:                this.flow.title ?? '',
-      stop_reason:          '',
+      vertical_id: 'RV',
+      artifact_schema_version:'1.0',
+      flow_id: this.flow.flowId,
+      flow_version: this.flow.flowVersion,
+      issue: this.flow.title ?? '',
+      stop_reason: '',
       last_confirmed_state: '',
-      safety_notes:         [],
+      safety_notes: [],
     };
   }
 
   private getNodeValue(sessionState: SessionState, nodeId: string): string | number | null {
-    // Search in reverse to get the most recent value if node was visited multiple times
     for (let i = sessionState.events.length - 1; i >= 0; i--) {
       const event = sessionState.events[i];
       if (event.node_id === nodeId) {
@@ -293,12 +315,10 @@ export class FlowEngine {
   }
 
   private interpolateArtifact(sessionState: SessionState, artifact: any): any {
-    // Deep clone to avoid mutating the original
     const clone = JSON.parse(JSON.stringify(artifact));
 
     const interpolate = (obj: any): any => {
       if (typeof obj === 'string') {
-        // Replace all {{node_id.value}} patterns
         return obj.replace(/\{\{([^.]+)\.value\}\}/g, (_match: string, nodeId: string) => {
           const value = this.getNodeValue(sessionState, nodeId.trim());
           return value !== null ? String(value) : 'Unknown';
@@ -320,38 +340,6 @@ export class FlowEngine {
     return interpolate(clone);
   }
 
-  // ─── Terminal processing ──────────────────────────────────────────────────
-
-  private processTerminalNode(
-    sessionState: SessionState,
-    terminalNode: TerminalNode,
-    incomingEvent?: SessionEvent
-  ): SessionState {
-    const event: SessionEvent = incomingEvent ?? {
-      node_id:   sessionState.current_node_id,
-      type:      'TERMINAL',
-      value:     true,
-      timestamp: new Date().toISOString(),
-    };
-    
-    const resolvedArtifact = this.interpolateArtifact(sessionState, terminalNode.artifact);
-
-    const completedState: SessionState = {
-      ...sessionState,
-      events:           [...sessionState.events, event],
-      completed:        true,
-      stopped:          false,
-      completed_at:     new Date().toISOString(),
-      terminal_node_id: sessionState.current_node_id,
-      result:           terminalNode.result,
-      artifact:         resolvedArtifact,
-    };
-
-    StorageService.saveSessionState(completedState);
-    this.generateSummary(completedState);
-    return completedState;
-  }
-
   // ─── Summary generation ───────────────────────────────────────────────────
 
   private generateSummary(sessionState: SessionState): SessionSummary {
@@ -359,16 +347,16 @@ export class FlowEngine {
       throw new FlowEngineError('Cannot generate summary for incomplete session');
     }
     const summary: SessionSummary = {
-      flow_id:          sessionState.flow_id,
-      flow_version:     sessionState.flow_version,
-      session_id:       sessionState.session_id,
-      started_at:       sessionState.started_at,
-      completed_at:     sessionState.completed_at!,
-      events:           sessionState.events,
+      flow_id: sessionState.flow_id,
+      flow_version: sessionState.flow_version,
+      session_id: sessionState.session_id,
+      started_at: sessionState.started_at,
+      completed_at: sessionState.completed_at!,
+      events: sessionState.events,
       terminal_node_id: sessionState.terminal_node_id!,
-      result:           sessionState.result!,
-      artifact:         sessionState.artifact,
-      stopped:          false,
+      result: sessionState.result!,
+      artifact: sessionState.artifact,
+      stopped: false,
     };
     StorageService.saveSessionSummary(summary);
     return summary;
@@ -379,16 +367,16 @@ export class FlowEngine {
     partialArtifact: FlowArtifact
   ): SessionSummary {
     const summary: SessionSummary = {
-      flow_id:          sessionState.flow_id,
-      flow_version:     sessionState.flow_version,
-      session_id:       sessionState.session_id,
-      started_at:       sessionState.started_at,
-      completed_at:     sessionState.stopped_at!,
-      events:           sessionState.events,
+      flow_id: sessionState.flow_id,
+      flow_version: sessionState.flow_version,
+      session_id: sessionState.session_id,
+      started_at: sessionState.started_at,
+      completed_at: sessionState.stopped_at!,
+      events: sessionState.events,
       terminal_node_id: sessionState.stop_node_id ?? sessionState.current_node_id,
-      result:           `Diagnostic stopped at: ${sessionState.current_node_id}`,
-      artifact:         partialArtifact,
-      stopped:          true,
+      result: `Diagnostic stopped at: ${sessionState.current_node_id}`,
+      artifact: partialArtifact,
+      stopped: true,
     };
     StorageService.saveSessionSummary(summary);
     return summary;
@@ -421,7 +409,6 @@ export class FlowEngine {
         }
         break;
       }
-      // SAFETY and TERMINAL accept any value
     }
   }
 
@@ -437,9 +424,9 @@ export class FlowEngine {
 
   getFlowInfo(): { id: string; version: string; title: string } {
     return {
-      id:      this.flow.flowId,
+      id: this.flow.flowId,
       version: this.flow.flowVersion,
-      title:   this.flow.title ?? '',
+      title: this.flow.title ?? '',
     };
   }
 }
