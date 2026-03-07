@@ -156,7 +156,7 @@
         "propane_level_status": "Unknown",
         "tank_valve_position": "Unknown",
         "safety_notes": [
-          "No immediate safety hazards identified during guided observation."
+          "User reported possible propane odor or leak. Immediate hazard may be present."
         ],
         "stabilization_actions": [
           "Do not operate propane appliances or electrical switches.",
@@ -186,7 +186,7 @@
         "propane_level_status": "Unknown",
         "tank_valve_position": "Unknown",
         "safety_notes": [
-          "No immediate safety hazards identified during guided observation."
+          "Propane hazard could not be ruled out during guided observation."
         ],
         "stabilization_actions": [
           "Do not operate propane appliances until the hazard is ruled out."
@@ -297,12 +297,12 @@
         "affected_appliances_scope": "All",
         "appliance_behavior_observed": "No appliances working since issue began",
         "appliance_selected": "Unknown",
-        "propane_hazard_observed": "No",
+        "propane_hazard_observed": "Yes",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
         "safety_notes": [
-          "No immediate safety hazards identified during guided observation."
+          "User reported possible propane odor or leak. Immediate hazard may be present"
         ],
         "stabilization_actions": [
           "Avoid further operation until evaluated by a technician."
@@ -326,12 +326,12 @@
         "affected_appliances_scope": "All",
         "appliance_behavior_observed": "Uncertain whether any appliances worked since issue began",
         "appliance_selected": "Unknown",
-        "propane_hazard_observed": "No",
+        "propane_hazard_observed": "Unknown",
         "propane_level_known": "Yes",
         "propane_level_status": "Has fuel",
         "tank_valve_position": "Open",
         "safety_notes": [
-          "No immediate safety hazards identified during guided observation."
+          "Propane hazard could not be ruled out during guided observation."
         ],
         "stabilization_actions": [
           "Avoid further operation until evaluated by a technician."
