@@ -123,18 +123,19 @@ export default function App() {
       setSessionState(newSession);
       setSessionSummary(null);
       setViewMode('diagnostic');
-    } catch {
+    } catch(error) {
+      console.log(error)
       Alert.alert('Error', 'Failed to start session');
     }
   };
 
   // ─── Response handling ──────────────────────────────────────────────────────
 
-  const handleResponse = (value: string | number | boolean) => {
+  const handleResponse = async (value: string | number | boolean) => {
     if (!sessionState || !flowEngine) return;
 
     try {
-      const updated = flowEngine.processResponse(sessionState, value);
+      const updated = await flowEngine.processResponse(sessionState, value);
       setSessionState(updated);
 
       if (updated.completed) {

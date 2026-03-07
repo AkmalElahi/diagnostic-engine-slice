@@ -35,15 +35,15 @@ export class ArtifactFinalizationService {
     this.persistence.saveSession(sessionState);
   }
 
-  finalizeArtifact(
+  async finalizeArtifact(
     sessionState: SessionState,
     terminalNode: TerminalNode
-  ): ArtifactFinalizationResult {
+  ): Promise<ArtifactFinalizationResult> {
     SessionStateAdapter.validateForFinalization(sessionState);
     const artifactSessionState = SessionStateAdapter.toArtifactSessionState(sessionState);
     const template = terminalNode.artifact;
     const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
-    const finalizationResult = ArtifactFinalizer.finalize(
+    const finalizationResult = await ArtifactFinalizer.finalize(
       template,
       artifactSessionState,
       fieldOrder
@@ -75,17 +75,17 @@ export class ArtifactFinalizationService {
     terminalNode: TerminalNode,
     onStore: (result: ArtifactFinalizationResult) => Promise<void>
   ): Promise<ArtifactFinalizationResult> {
-    const result = this.finalizeArtifact(sessionState, terminalNode);
+    const result = await this.finalizeArtifact(sessionState, terminalNode);
     await onStore(result);
     this.persistence.clearSession(true); // Preserve artifact_id
     return result;
   }
 
-  verifyDeterminism(
+  async verifyDeterminism(
     storedJson: string,
     exportedJson: string
-  ): { is_valid: boolean; stored_hash: string; exported_hash: string } {
-    const validation = CanonicalSerializer.validateDeterminism(storedJson, exportedJson);
+  ): Promise<{ is_valid: boolean; stored_hash: string; exported_hash: string }> {
+    const validation = await CanonicalSerializer.validateDeterminism(storedJson, exportedJson);
     return {
       is_valid: validation.is_valid,
       stored_hash: validation.stored_hash,
@@ -103,11 +103,11 @@ export class ArtifactFinalizationService {
     return this.persistence.getSessionStats();
   }
 
-  exportArtifact(
+  async exportArtifact(
     storedJson: string,
     artifact: Record<string, any>,
     fieldOrder: string[]
-  ): string {
-    return CanonicalSerializer.exportWithVerification(storedJson, artifact, fieldOrder);
+  ): Promise<string> {
+    return await CanonicalSerializer.exportWithVerification(storedJson, artifact, fieldOrder);
   }
 }

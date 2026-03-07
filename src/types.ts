@@ -34,7 +34,7 @@ export interface FlowArtifact {
   // Universal required fields (all flows, all terminals)
   flow_id: string;
   flow_version: string;
-  vertical_id: string;
+  vertical_id?: string;
   issue: string;
   stop_reason: string;
   last_confirmed_state: string;
@@ -165,7 +165,7 @@ export interface ExecutedNode {
   value?: any;
 }
 export interface TerminalArtifactTemplate {
-  vertical_id: string;
+  vertical_id?: string;
   issue: string;
   [key: string]: any;
   safety_notes: string[];

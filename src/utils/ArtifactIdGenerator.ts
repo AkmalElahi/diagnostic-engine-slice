@@ -1,15 +1,13 @@
-import { v4 as uuidv4, validate as uuidValidate, version as uuidVersion } from 'uuid';
+import * as Crypto from 'expo-crypto';
 
 export class ArtifactIdGenerator {
   static generate(): string {
-    return uuidv4();
+    return Crypto.randomUUID();
   }
 
   static isValid(id: string): boolean {
-    if (!uuidValidate(id)) {
-      return false;
-    }
-    return uuidVersion(id) === 4;
+    const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidV4Regex.test(id);
   }
 
   static ensureValid(existingId?: string): string {

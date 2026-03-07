@@ -39,7 +39,7 @@ describe('ArtifactFinalizationService', () => {
   });
 
   describe('finalizeArtifact', () => {
-    it('should finalize artifact at terminal node', () => {
+    it('should finalize artifact at terminal node', async () => {
       const session: SessionState = {
         artifact_id: 'test-artifact-id',
         flow_id: 'rv_furnace',
@@ -74,7 +74,7 @@ describe('ArtifactFinalizationService', () => {
         },
       };
 
-      const result = integration.finalizeArtifact(session, terminalNode);
+      const result = await integration.finalizeArtifact(session, terminalNode);
 
       expect(result.artifact_id).toBe('test-artifact-id');
       expect(result.flow_id).toBe('rv_furnace');
@@ -123,7 +123,7 @@ describe('ArtifactFinalizationService', () => {
       }).toThrow();
     });
 
-    it('should normalize enum values during finalization', () => {
+    it('should normalize enum values during finalization', async () => {
       const session: SessionState = {
         artifact_id: 'test-id',
         flow_id: 'test',
@@ -158,7 +158,7 @@ describe('ArtifactFinalizationService', () => {
         },
       };
 
-      const result = integration.finalizeArtifact(session, terminalNode);
+      const result = await integration.finalizeArtifact(session, terminalNode);
 
       expect(result.finalization_result.final_artifact.vertical_id).toBe('RV');
     });

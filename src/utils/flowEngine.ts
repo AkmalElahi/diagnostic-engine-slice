@@ -107,10 +107,10 @@ export class FlowEngine {
 
   // ─── Response processing ──────────────────────────────────────────────────
 
-  processResponse(
+  async processResponse(
     sessionState: SessionState,
     value: string | number | boolean
-  ): SessionState {
+  ): Promise<SessionState> {
     try {
       const currentNode = this.getCurrentNode(sessionState);
       this.validateResponse(currentNode, value);
@@ -188,7 +188,7 @@ export class FlowEngine {
 
       const nextNode = this.nodes[nextNodeId];
       if (nextNode?.type === 'TERMINAL') {
-        return this.processTerminalNode(updatedState, nextNode as TerminalNode);
+        return  await this.processTerminalNode(updatedState, nextNode as TerminalNode);
       }
 
       return updatedState;
@@ -199,11 +199,11 @@ export class FlowEngine {
   }
 
 
-  private processTerminalNode(
+  private async processTerminalNode(
     sessionState: SessionState,
     terminalNode: TerminalNode,
     incomingEvent?: SessionEvent
-  ): SessionState {
+  ): Promise<SessionState>{
     const event: SessionEvent = incomingEvent ?? {
       node_id: sessionState.current_node_id,
       type: 'TERMINAL',
@@ -216,7 +216,7 @@ export class FlowEngine {
     sessionState.last_confirmed_state = terminalNode.result;
 
     // MS5: Finalize artifact using ArtifactFinalizationService
-    const finalizationResult = this.artifactService.finalizeArtifact(
+    const finalizationResult = await this.artifactService.finalizeArtifact(
       sessionState,
       terminalNode
     );

@@ -6,7 +6,7 @@ import {
 
 describe('CanonicalSerializer', () => {
   describe('serialize', () => {
-    it('should produce canonical JSON with no formatting whitespace', () => {
+    it('should produce canonical JSON with no formatting whitespace', async () => {
       const artifact = {
         artifact_id: '123-456',
         issue: 'TestIssue',
@@ -14,7 +14,7 @@ describe('CanonicalSerializer', () => {
       };
       const fieldOrder = ['artifact_id', 'issue', 'flow_id'];
 
-      const result = CanonicalSerializer.serialize(artifact, fieldOrder, false);
+      const result =  await CanonicalSerializer.serialize(artifact, fieldOrder, false);
 
       // No formatting whitespace (indentation, newlines, spaces around punctuation)
       expect(result.canonical_json).not.toContain('\n');
@@ -26,7 +26,7 @@ describe('CanonicalSerializer', () => {
       );
     });
 
-    it('should respect canonical field ordering, not alphabetical', () => {
+    it('should respect canonical field ordering, not alphabetical', async () => {
       const artifact = {
         zebra: 'last',
         apple: 'first',
@@ -35,14 +35,14 @@ describe('CanonicalSerializer', () => {
       // Intentionally non-alphabetical order
       const fieldOrder = ['middle', 'zebra', 'apple'];
 
-      const result = CanonicalSerializer.serialize(artifact, fieldOrder, false);
+      const result = await CanonicalSerializer.serialize(artifact, fieldOrder, false);
 
       expect(result.canonical_json).toBe(
         '{"middle":"second","zebra":"last","apple":"first"}'
       );
     });
 
-    it('should produce identical output for identical input (determinism)', () => {
+    it('should produce identical output for identical input (determinism)', async () => {
       const artifact = {
         artifact_id: '123',
         flow_id: 'test',
@@ -50,21 +50,21 @@ describe('CanonicalSerializer', () => {
       };
       const fieldOrder = ['artifact_id', 'flow_id', 'issue'];
 
-      const result1 = CanonicalSerializer.serialize(artifact, fieldOrder, false);
-      const result2 = CanonicalSerializer.serialize(artifact, fieldOrder, false);
+      const result1 = await CanonicalSerializer.serialize(artifact, fieldOrder, false);
+      const result2 = await CanonicalSerializer.serialize(artifact, fieldOrder, false);
 
       expect(result1.canonical_json).toBe(result2.canonical_json);
       expect(result1.sha256_hash).toBe(result2.sha256_hash);
     });
 
-    it('should handle arrays without sorting', () => {
+    it('should handle arrays without sorting', async () => {
       const artifact = {
         artifact_id: '123',
         recommendations: ['Third', 'First', 'Second'],
       };
       const fieldOrder = ['artifact_id', 'recommendations'];
 
-      const result = CanonicalSerializer.serialize(artifact, fieldOrder, false);
+      const result = await CanonicalSerializer.serialize(artifact, fieldOrder, false);
 
       // Array order preserved exactly
       expect(result.canonical_json).toContain(
@@ -72,7 +72,7 @@ describe('CanonicalSerializer', () => {
       );
     });
 
-    it('should handle null values correctly', () => {
+    it('should handle null values correctly', async () => {
       const artifact = {
         artifact_id: '123',
         measurement: null,
@@ -80,12 +80,12 @@ describe('CanonicalSerializer', () => {
       };
       const fieldOrder = ['artifact_id', 'measurement', 'flow_id'];
 
-      const result = CanonicalSerializer.serialize(artifact, fieldOrder, false);
+      const result = await CanonicalSerializer.serialize(artifact, fieldOrder, false);
 
       expect(result.canonical_json).toContain('"measurement":null');
     });
 
-    it('should handle numbers without trailing zeros', () => {
+    it('should handle numbers without trailing zeros', async () => {
       const artifact = {
         artifact_id: '123',
         voltage: 12.5,
@@ -93,7 +93,7 @@ describe('CanonicalSerializer', () => {
       };
       const fieldOrder = ['artifact_id', 'voltage', 'current'];
 
-      const result = CanonicalSerializer.serialize(artifact, fieldOrder, false);
+      const result = await CanonicalSerializer.serialize(artifact, fieldOrder, false);
 
       // No superfluous formatting
       expect(result.canonical_json).toContain('"voltage":12.5');
@@ -102,7 +102,7 @@ describe('CanonicalSerializer', () => {
       expect(result.canonical_json).not.toContain('3.0');
     });
 
-    it('should compute artifact_hash via two-pass algorithm', () => {
+    it('should compute artifact_hash via two-pass algorithm', async () => {
       const artifact = {
         artifact_id: '123',
         artifact_hash: '', // Will be computed
@@ -110,7 +110,7 @@ describe('CanonicalSerializer', () => {
       };
       const fieldOrder = ['artifact_id', 'artifact_hash', 'issue'];
 
-      const result = CanonicalSerializer.serialize(artifact, fieldOrder, true);
+      const result = await CanonicalSerializer.serialize(artifact, fieldOrder, true);
 
       // artifact_hash should be populated with SHA-256
       expect(result.canonical_json).toMatch(
@@ -145,32 +145,32 @@ describe('CanonicalSerializer', () => {
   });
 
   describe('validateDeterminism', () => {
-    it('should validate identical JSON strings', () => {
+    it('should validate identical JSON strings', async () => {
       const json = '{"artifact_id":"123","issue":"Test"}';
 
-      const result = CanonicalSerializer.validateDeterminism(json, json);
+      const result = await CanonicalSerializer.validateDeterminism(json, json);
 
       expect(result.is_valid).toBe(true);
       expect(result.stored_hash).toBe(result.exported_hash);
       expect(result.error_message).toBeUndefined();
     });
 
-    it('should fail for different JSON strings', () => {
+    it('should fail for different JSON strings', async () => {
       const json1 = '{"artifact_id":"123","issue":"Test"}';
       const json2 = '{"artifact_id":"456","issue":"Test"}';
 
-      const result = CanonicalSerializer.validateDeterminism(json1, json2);
+      const result = await CanonicalSerializer.validateDeterminism(json1, json2);
 
       expect(result.is_valid).toBe(false);
       expect(result.stored_hash).not.toBe(result.exported_hash);
       expect(result.error_message).toContain('Determinism violation');
     });
 
-    it('should fail for whitespace differences (not canonical)', () => {
+    it('should fail for whitespace differences (not canonical)', async () => {
       const json1 = '{"artifact_id":"123"}';
       const json2 = '{ "artifact_id": "123" }'; // Added spaces
 
-      const result = CanonicalSerializer.validateDeterminism(json1, json2);
+      const result = await CanonicalSerializer.validateDeterminism(json1, json2);
 
       expect(result.is_valid).toBe(false);
     });
@@ -212,7 +212,7 @@ describe('CanonicalSerializer', () => {
   });
 
   describe('exportWithVerification', () => {
-    it('should export and verify byte-identical artifact', () => {
+    it('should export and verify byte-identical artifact', async () => {
       const artifact = {
         artifact_id: '123',
         issue: 'Test',
@@ -220,7 +220,7 @@ describe('CanonicalSerializer', () => {
       const fieldOrder = ['artifact_id', 'issue'];
 
       // Serialize and store
-      const stored = CanonicalSerializer.serialize(artifact, fieldOrder, false);
+      const stored = await CanonicalSerializer.serialize(artifact, fieldOrder, false);
 
       // Export with verification
       const exported = CanonicalSerializer.exportWithVerification(
@@ -232,7 +232,7 @@ describe('CanonicalSerializer', () => {
       expect(exported).toBe(stored.canonical_json);
     });
 
-    it('should throw if artifact was modified between storage and export', () => {
+    it('should throw if artifact was modified between storage and export', async () => {
       const originalArtifact = {
         artifact_id: '123',
         issue: 'Test',
@@ -240,7 +240,7 @@ describe('CanonicalSerializer', () => {
       const fieldOrder = ['artifact_id', 'issue'];
 
       // Serialize and store
-      const stored = CanonicalSerializer.serialize(
+      const stored = await CanonicalSerializer.serialize(
         originalArtifact,
         fieldOrder,
         false
@@ -264,7 +264,7 @@ describe('CanonicalSerializer', () => {
   });
 
   describe('Determinism proof scenarios', () => {
-    it('should produce identical output across multiple serializations', () => {
+    it('should produce identical output across multiple serializations', async () => {
       const artifact = {
         artifact_id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
         artifact_hash: '',
@@ -298,24 +298,24 @@ describe('CanonicalSerializer', () => {
       ];
 
       // Serialize 10 times
-      const results = Array.from({ length: 10 }, () =>
+      const results = Array.from({ length: 10 },  () =>
         CanonicalSerializer.serialize(artifact, fieldOrder, true)
       );
 
       // All canonical JSON strings should be identical
-      const firstJson = results[0].canonical_json;
-      results.forEach((result) => {
-        expect(result.canonical_json).toBe(firstJson);
+      const firstJson = (await results[0]).canonical_json;
+      results.forEach(async (result) => {
+        expect((await result).canonical_json).toBe(firstJson);
       });
 
       // All hashes should be identical
-      const firstHash = results[0].sha256_hash;
-      results.forEach((result) => {
-        expect(result.sha256_hash).toBe(firstHash);
+      const firstHash = (await results[0]).sha256_hash;
+      results.forEach(async (result) => {
+        expect((await result).sha256_hash).toBe(firstHash);
       });
     });
 
-    it('should prove storage-export determinism', () => {
+    it('should prove storage-export determinism', async () => {
       const artifact = {
         artifact_id: '123',
         artifact_hash: '',
@@ -326,7 +326,7 @@ describe('CanonicalSerializer', () => {
       const fieldOrder = ['artifact_id', 'artifact_hash', 'issue', 'flow_id'];
 
       // Simulate storage
-      const storageResult = CanonicalSerializer.serialize(
+      const storageResult = await CanonicalSerializer.serialize(
         artifact,
         fieldOrder,
         true
@@ -335,7 +335,7 @@ describe('CanonicalSerializer', () => {
       const storedHash = storageResult.sha256_hash;
 
       // Simulate export (artifact is retrieved from storage)
-      const exportedJson = CanonicalSerializer.exportWithVerification(
+      const exportedJson = await CanonicalSerializer.exportWithVerification(
         storedJson,
         JSON.parse(storedJson),
         fieldOrder
@@ -345,7 +345,7 @@ describe('CanonicalSerializer', () => {
       expect(exportedJson).toBe(storedJson);
 
       // Verify hashes match
-      const validation = CanonicalSerializer.validateDeterminism(
+      const validation = await CanonicalSerializer.validateDeterminism(
         storedJson,
         exportedJson
       );

@@ -1,4 +1,5 @@
-import crypto from 'crypto';
+import * as Crypto from 'expo-crypto';
+
 import {
   CanonicalSerializationResult,
   DeterminismValidationResult,
@@ -7,12 +8,11 @@ import {
 } from '../types';
 
 export class CanonicalSerializer {
-  static serialize(
+  static async serialize(
     artifact: Record<string, any>,
     fieldOrder: string[],
     computeArtifactHash: boolean = true
-  ): CanonicalSerializationResult {
-    // Validate inputs
+  ): Promise<CanonicalSerializationResult> {
     if (!artifact || typeof artifact !== 'object') {
       throw new SerializationError('Artifact must be a non-null object');
     }
@@ -22,21 +22,16 @@ export class CanonicalSerializer {
     }
 
     let finalArtifact = artifact;
-
-    // Two-pass serialization if artifact_hash computation is required
     if (computeArtifactHash && 'artifact_hash' in artifact) {
-      // Pass 1: Serialize with empty artifact_hash
       const artifactWithEmptyHash = { ...artifact, artifact_hash: '' };
       const pass1Json = this.serializeWithOrder(artifactWithEmptyHash, fieldOrder);
-      const pass1Hash = this.computeSHA256(pass1Json);
+      const pass1Hash = await this.computeSHA256(pass1Json);
 
-      // Pass 2: Insert computed hash and serialize final
       finalArtifact = { ...artifact, artifact_hash: pass1Hash };
     }
 
-    // Final serialization
     const canonicalJson = this.serializeWithOrder(finalArtifact, fieldOrder);
-    const sha256Hash = this.computeSHA256(canonicalJson);
+    const sha256Hash = await this.computeSHA256(canonicalJson);
 
     return {
       canonical_json: canonicalJson,
@@ -48,7 +43,6 @@ export class CanonicalSerializer {
     obj: Record<string, any>,
     fieldOrder: string[]
   ): string {
-    // Build ordered object following canonical field order
     const orderedObj: Record<string, any> = {};
 
     for (const key of fieldOrder) {
@@ -57,7 +51,6 @@ export class CanonicalSerializer {
       }
     }
 
-    // Check for fields not in fieldOrder (should not happen in valid artifacts)
     const objKeys = Object.keys(obj);
     const missingKeys = objKeys.filter(k => !fieldOrder.includes(k));
     if (missingKeys.length > 0) {
@@ -70,22 +63,21 @@ export class CanonicalSerializer {
     return canonicalJson;
   }
 
-  private static computeSHA256(input: string): string {
-    // Create hash using UTF-8 encoding
-    const hash = crypto
-      .createHash('sha256')
-      .update(input, 'utf8')
-      .digest('hex');
+  private static async computeSHA256(input: string): Promise<string> {
+    const hash = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      input
+    );
 
     return hash;
   }
 
-  static validateDeterminism(
+  static async validateDeterminism(
     storedJson: string,
     exportedJson: string
-  ): DeterminismValidationResult {
-    const storedHash = this.computeSHA256(storedJson);
-    const exportedHash = this.computeSHA256(exportedJson);
+  ): Promise<DeterminismValidationResult> {
+    const storedHash = await this.computeSHA256(storedJson);
+    const exportedHash = await this.computeSHA256(exportedJson);
 
     const isValid = storedHash === exportedHash;
 
@@ -105,10 +97,10 @@ export class CanonicalSerializer {
     };
   }
 
-  static verifyByteIdentical(json1: string, json2: string): void {
+  static async verifyByteIdentical(json1: string, json2: string): Promise<void> {
     if (json1 !== json2) {
-      const hash1 = this.computeSHA256(json1);
-      const hash2 = this.computeSHA256(json2);
+      const hash1 = await this.computeSHA256(json1);
+      const hash2 = await this.computeSHA256(json2);
 
       throw new DeterminismError(
         'Stored and exported JSON are not byte-identical',
@@ -118,15 +110,15 @@ export class CanonicalSerializer {
     }
   }
 
-  static exportWithVerification(
+  static async exportWithVerification(
     storedJson: string,
     artifact: Record<string, any>,
     fieldOrder: string[]
-  ): string {
+  ): Promise<string> {
     // Serialize artifact for export (no hash recomputation needed)
     const exportedJson = this.serializeWithOrder(artifact, fieldOrder);
 
-    this.verifyByteIdentical(storedJson, exportedJson);
+    await this.verifyByteIdentical(storedJson, exportedJson);
 
     return exportedJson;
   }

@@ -60,12 +60,12 @@ describe('ArtifactFinalizer', () => {
   });
 
   describe('finalize', () => {
-    it('should create final artifact with all required base fields', () => {
+    it('should create final artifact with all required base fields', async () => {
       const template = createTemplate();
       const sessionState = createSessionState();
       const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder
@@ -83,12 +83,12 @@ describe('ArtifactFinalizer', () => {
       );
     });
 
-    it('should populate artifact_hash via CanonicalSerializer', () => {
+    it('should populate artifact_hash via CanonicalSerializer', async () => {
       const template = createTemplate();
       const sessionState = createSessionState();
       const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder
@@ -99,12 +99,12 @@ describe('ArtifactFinalizer', () => {
       expect(result.sha256_hash).toMatch(/^[a-f0-9]{64}$/);
     });
 
-    it('should produce canonical JSON with no placeholders', () => {
+    it('should produce canonical JSON with no placeholders', async () => {
       const template = createTemplate();
       const sessionState = createSessionState();
       const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder
@@ -118,14 +118,14 @@ describe('ArtifactFinalizer', () => {
       expect(result.canonical_json).not.toContain(': ');
     });
 
-    it('should inject default stabilization_actions if empty', () => {
+    it('should inject default stabilization_actions if empty', async () => {
       const template = createTemplate({
         stabilization_actions: [], // Empty array
       });
       const sessionState = createSessionState();
       const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder
@@ -139,14 +139,14 @@ describe('ArtifactFinalizer', () => {
       );
     });
 
-    it('should inject default recommendations if empty', () => {
+    it('should inject default recommendations if empty', async () => {
       const template = createTemplate({
         recommendations: [], // Empty array
       });
       const sessionState = createSessionState();
       const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder
@@ -160,7 +160,7 @@ describe('ArtifactFinalizer', () => {
       );
     });
 
-    it('should preserve non-empty arrays without injection', () => {
+    it('should preserve non-empty arrays without injection', async () => {
       const template = createTemplate({
         stabilization_actions: ['Custom action'],
         recommendations: ['Custom recommendation'],
@@ -168,7 +168,7 @@ describe('ArtifactFinalizer', () => {
       const sessionState = createSessionState();
       const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder
@@ -179,7 +179,7 @@ describe('ArtifactFinalizer', () => {
       expect(result.warnings).toHaveLength(0);
     });
 
-    it('should handle field mappings with runtime values', () => {
+    it('should handle field mappings with runtime values', async () => {
       const template = createTemplate();
       const sessionState = createSessionState();
       const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
@@ -197,7 +197,7 @@ describe('ArtifactFinalizer', () => {
         },
       ];
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder,
@@ -208,7 +208,7 @@ describe('ArtifactFinalizer', () => {
       expect(result.final_artifact.gas_pressure).toBe(7.2);
     });
 
-    it('should set Unknown for unexecuted string fields', () => {
+    it('should set Unknown for unexecuted string fields', async () => {
       const template = createTemplate();
       const sessionState = createSessionState({
         executed_nodes: [], // No nodes executed
@@ -230,7 +230,7 @@ describe('ArtifactFinalizer', () => {
         },
       ];
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder,
@@ -240,7 +240,7 @@ describe('ArtifactFinalizer', () => {
       expect(result.final_artifact.thermostat_display).toBe('Unknown');
     });
 
-    it('should set null for unexecuted number fields', () => {
+    it('should set null for unexecuted number fields', async () => {
       const template = createTemplate();
       const sessionState = createSessionState({
         executed_nodes: [], // No nodes executed
@@ -262,7 +262,7 @@ describe('ArtifactFinalizer', () => {
         },
       ];
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder,
@@ -272,7 +272,7 @@ describe('ArtifactFinalizer', () => {
       expect(result.final_artifact.gas_pressure).toBeNull();
     });
 
-    it('should set Unknown for unexecuted enum fields', () => {
+    it('should set Unknown for unexecuted enum fields', async () => {
       const template = createTemplate();
       const sessionState = createSessionState({
         executed_nodes: [],
@@ -294,7 +294,7 @@ describe('ArtifactFinalizer', () => {
         },
       ];
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder,
@@ -367,7 +367,7 @@ describe('ArtifactFinalizer', () => {
       expect(fieldOrder[lastIndex - 3]).toBe('safety_notes');
     });
 
-    it('should preserve flow-specific field order from template', () => {
+    it('should preserve flow-specific field order from template', async () => {
       const template: any = {
         vertical_id: 'RV',
         issue: 'Test',
@@ -399,7 +399,7 @@ describe('ArtifactFinalizer', () => {
   });
 
   describe('Edge cases', () => {
-    it('should handle measurement with null value', () => {
+    it('should handle measurement with null value', async () => {
       const template = createTemplate();
       const sessionState = createSessionState({
         measurements: {
@@ -422,7 +422,7 @@ describe('ArtifactFinalizer', () => {
         },
       ];
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder,
@@ -432,14 +432,14 @@ describe('ArtifactFinalizer', () => {
       expect(result.final_artifact.gas_pressure).toBeNull();
     });
 
-    it('should handle empty safety_notes array', () => {
+    it('should handle empty safety_notes array', async   () => {
       const template = createTemplate({
         safety_notes: [],
       });
       const sessionState = createSessionState();
       const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder
@@ -449,14 +449,14 @@ describe('ArtifactFinalizer', () => {
       expect(result.final_artifact.safety_notes).toEqual([]);
     });
 
-    it('should handle notes as empty string', () => {
+    it('should handle notes as empty string', async  () => {
       const template = createTemplate({
         notes: '',
       });
       const sessionState = createSessionState();
       const fieldOrder = ArtifactFinalizer.extractFieldOrder(template);
 
-      const result = ArtifactFinalizer.finalize(
+      const result = await ArtifactFinalizer.finalize(
         template,
         sessionState,
         fieldOrder

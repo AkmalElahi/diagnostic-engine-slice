@@ -13,12 +13,12 @@ import {
 
 export class ArtifactFinalizer {
   private static ARTIFACT_SCHEMA_VERSION = '1.0';
-  static finalize(
+  static async finalize(
     terminalArtifactTemplate: TerminalArtifactTemplate,
     sessionState: ArtifactSessionState,
     fieldOrder: string[],
     fieldMappings?: FieldMapping[],
-  ): FinalizationResult {
+  ): Promise<FinalizationResult> {
     const warnings: string[] = [];
     const finalArtifact = this.buildFinalArtifact(
       terminalArtifactTemplate,
@@ -29,7 +29,7 @@ export class ArtifactFinalizer {
     this.enforceNonEmptyArrays(finalArtifact, warnings);
     this.validateNoPlaceholders(finalArtifact);
     this.validateFieldOrdering(finalArtifact, fieldOrder);
-    const { canonical_json, sha256_hash } = CanonicalSerializer.serialize(
+    const { canonical_json, sha256_hash } = await CanonicalSerializer.serialize(
       finalArtifact,
       fieldOrder,
       true,

@@ -38,7 +38,7 @@ export interface MeasureNode extends RawFlowNode {
 
 export interface FlowArtifact {
   // Universal required fields
-  vertical_id: string;  // Added for MS5 - required in all flows
+  vertical_id?: string;  // Added for MS5 - required in all flows
   flow_id: string;
   flow_version: string;
   artifact_schema_version: string;
@@ -320,7 +320,6 @@ export class FlowValidator {
   private static validateArtifact(nodeId: string, artifact: FlowArtifact): void {
     // Required string fields
     const requiredStrings: (keyof FlowArtifact)[] = [
-      'vertical_id',  // Added for MS5
       'flow_id', 
       'flow_version', 
       'artifact_schema_version', 
