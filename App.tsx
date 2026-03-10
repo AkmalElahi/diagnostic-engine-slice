@@ -9,7 +9,8 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { FlowEngine, FlowEngineError } from './src/utils/FlowEngine';
+import { FlowEngine, FlowEngineError, FlowValidationError, ChecksumVerificationError } from './src/utils/FlowEngine';
+import { FlowChecksumStore } from './src/utils/Flowchecksumstore';
 import { FlowDefinition, MeasureNode, QuestionNode, SafetyNode, SessionState, SessionSummary, TerminalNode } from './src/types';
 import { QuestionNodeComponent } from './src/components/QuestionNodeComponent';
 import { SafetyNodeComponent } from './src/components/SafetyNodeComponent';
@@ -19,7 +20,6 @@ import { HistoryView } from './src/components/HistoryView';
 import { FlowSelector } from './src/components/FlowSelector';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { StorageService } from './src/utils/StorageService';
-import { FlowValidationError } from './src/utils/FlowValidator';
 
 import no_power_issue from './src/flows/flow_1_no_power_inside_rv_v2.json';
 import water_system_issue from './src/flows/flow_2_water_system_issue_v2.json';
@@ -67,7 +67,7 @@ export default function App() {
 
   // ─── Session restore ────────────────────────────────────────────────────────
 
-  const restoreSession = () => {
+  const restoreSession = async () => {
     const existing = StorageService.loadSessionState();
     if (!existing) return;
 
@@ -80,11 +80,22 @@ export default function App() {
       );
       if (!matchingFlow) return;
 
-      const engine = new FlowEngine(matchingFlow.flow);
+      // Get checksum for verification
+      const expectedChecksum = FlowChecksumStore.getChecksum(matchingFlow.flow.flowId);
+      
+      let engine: FlowEngine;
+      if (expectedChecksum) {
+        engine = await FlowEngine.createWithChecksum(matchingFlow.flow, expectedChecksum);
+      } else {
+        console.warn('No checksum for flow during restore:', matchingFlow.flow.flowId);
+        engine = FlowEngine.createUnsafe(matchingFlow.flow);
+      }
+
       setFlowEngine(engine);
       setSessionState(existing);
       setViewMode('diagnostic');
-    } catch {
+    } catch (err) {
+      console.error('Failed to restore session:', err);
       StorageService.clearSessionState();
     }
   };
@@ -95,15 +106,43 @@ export default function App() {
     setHistory(FlowEngine.getHistory());
   };
 
-  // ─── Flow selection ─────────────────────────────────────────────────────────
+  // ─── Flow selection with checksum verification ──────────────────────────────
 
-  const handleSelectFlow = (flow: FlowDefinition) => {
+  const handleSelectFlow = async (flow: FlowDefinition) => {
     try {
-      const engine = new FlowEngine(flow);
+      // Get expected checksum for this flow
+      const expectedChecksum = FlowChecksumStore.getChecksum(flow.flowId);
+      
+      let engine: FlowEngine;
+      
+      if (expectedChecksum) {
+        // Create engine with checksum verification
+        engine = await FlowEngine.createWithChecksum(flow, expectedChecksum);
+      } else {
+        // Checksum not available - warn and create anyway
+        console.warn(
+          '[MISSING_CHECKSUM]',
+          `No checksum found for flow ${flow.flowId}. Creating without verification.`
+        );
+        engine = FlowEngine.createUnsafe(flow);
+      }
+      
       setFlowEngine(engine);
       startNewSession(engine);
+      
     } catch (err) {
-      if (err instanceof FlowValidationError) {
+      if (err instanceof ChecksumVerificationError) {
+        // Checksum verification failed - show detailed error
+        Alert.alert(
+          'Flow Integrity Error',
+          `The selected flow has been modified and cannot be executed.\n\n` +
+          `Flow: ${err.flow_id} v${err.flow_version}\n` +
+          `Expected: ${err.expected_hash.substring(0, 16)}...\n` +
+          `Computed: ${err.computed_hash.substring(0, 16)}...\n\n` +
+          `Please contact support.`,
+          [{ text: 'OK' }]
+        );
+      } else if (err instanceof FlowValidationError) {
         Alert.alert('Invalid Flow', err.message);
       } else if (err instanceof FlowEngineError) {
         Alert.alert('Engine Error', err.message);
@@ -123,8 +162,7 @@ export default function App() {
       setSessionState(newSession);
       setSessionSummary(null);
       setViewMode('diagnostic');
-    } catch(error) {
-      console.log(error)
+    } catch {
       Alert.alert('Error', 'Failed to start session');
     }
   };

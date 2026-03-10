@@ -226,6 +226,7 @@ export interface EnumValidationResult {
   is_valid: boolean;
   normalized_value?: string;
   error_message?: string;
+  allowed_values?: string[];
 }
 
 export const DEFAULT_STRINGS = {
