@@ -1,4 +1,3 @@
-
 import { MMKV, createMMKV } from 'react-native-mmkv';
 import { ArtifactFinalizationService } from '../utils/Artifactfinalizationservice';
 import {
@@ -83,7 +82,7 @@ describe('ArtifactFinalizationService', () => {
       expect(result.finalization_result.sha256_hash).toMatch(/^[a-f0-9]{64}$/);
     });
 
-    it('should throw FinalizationError if validation fails', () => {
+    it('should throw error if validation fails', async () => {
       const session: SessionState = {
         artifact_id: '',  // Invalid - missing required field
         flow_id: 'rv_furnace',
@@ -118,9 +117,9 @@ describe('ArtifactFinalizationService', () => {
         },
       };
 
-      expect(() => {
-        integration.finalizeArtifact(session, terminalNode);
-      }).toThrow();
+      await expect(
+        integration.finalizeArtifact(session, terminalNode)
+      ).rejects.toThrow();
     });
 
     it('should normalize enum values during finalization', async () => {
