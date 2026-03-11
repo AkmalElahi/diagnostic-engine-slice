@@ -27,7 +27,7 @@ describe('FlowValidator  Validation', () => {
           issue: 'Test Issue',
           flow_id: 'test_flow_ms57',
           flow_version: '1.0',
-          artifact_schema_version: '1.1',
+          artifact_schema_version: '1.0',
           stop_reason: 'Complete',
           last_confirmed_state: 'Completed',
           safety_notes: ['Test safety note'],
@@ -153,7 +153,7 @@ describe('FlowValidator  Validation', () => {
             ...validFlow.nodes.t1,
             artifact: {
               ...(validFlow.nodes.t1 as any).artifact,
-              artifact_schema_version: '1.1',
+              artifact_schema_version: '1.0',
             },
           },
         },
@@ -163,7 +163,7 @@ describe('FlowValidator  Validation', () => {
         FlowValidator.validateSync(flowWithValidSchema);
       }).not.toThrow();
     });
-    
+
   });
 
   describe('Checksum Validation (Async)', () => {

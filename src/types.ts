@@ -118,6 +118,7 @@ export interface SessionSummary {
 export interface CanonicalSerializationResult {
   canonical_json: string;
   sha256_hash: string;
+  artifact_hash?: string;
 }
 export interface DeterminismValidationResult {
   is_valid: boolean;
