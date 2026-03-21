@@ -1,6 +1,5 @@
 import { createMMKV } from 'react-native-mmkv';
 import { SessionState, SessionSummary } from '../types';
-import { Platform } from 'react-native';
 
 // Initialize MMKV storage
 const storage = createMMKV({
@@ -10,6 +9,7 @@ const storage = createMMKV({
 const STORAGE_KEYS = {
   SESSION_STATE: 'session_state',
   SESSION_HISTORY: 'session_history',
+  PROFILE_COMPLETED: 'rv_profile_completed',
 } as const;
 
 export class StorageError extends Error {
@@ -34,11 +34,47 @@ export class StorageService {
     }
   }
 
+  static getProfileCompleted(): boolean {
+    try {
+      return storage.getBoolean(STORAGE_KEYS.PROFILE_COMPLETED) ?? false;
+    } catch (error) {
+      console.error(
+        '[StorageService] Failed to get profile completion status:',
+        error,
+      );
+      return false;
+    }
+  }
+
+  static setProfileCompleted(completed: boolean): void {
+    try {
+      storage.set(STORAGE_KEYS.PROFILE_COMPLETED, completed);
+      console.log('[StorageService] Profile completion status set:', completed);
+    } catch (error) {
+      console.error(
+        '[StorageService] Failed to set profile completion status:',
+        error,
+      );
+    }
+  }
+
+  static resetProfileCompletion(): void {
+    try {
+      storage.remove(STORAGE_KEYS.PROFILE_COMPLETED);
+      console.log('[StorageService] Profile completion status reset');
+    } catch (error) {
+      console.error(
+        '[StorageService] Failed to reset profile completion status:',
+        error,
+      );
+    }
+  }
+
   static loadSessionState(): SessionState | null {
     try {
       const json = storage.getString(STORAGE_KEYS.SESSION_STATE);
       if (!json) return null;
-      
+
       const state = JSON.parse(json) as SessionState;
       // console.log("LOAD SESSION FOR SESSION ID", state.session_id)
       return state;
@@ -58,8 +94,8 @@ export class StorageService {
   static saveSessionSummary(summary: SessionSummary): void {
     try {
       const history = this.getSessionHistory();
-      
-      const exists = history.some(s => s.session_id === summary.session_id);
+
+      const exists = history.some((s) => s.session_id === summary.session_id);
       if (exists) {
         return;
       }

@@ -84,9 +84,9 @@ export interface SessionState {
   completed: boolean;
   stopped: boolean;
   artifact_id: string;
-  stop_reason:string;
+  stop_reason: string;
   executed_nodes: ExecutedNode[];
-  last_confirmed_state:string;
+  last_confirmed_state: string;
   answers: Record<string, any>;
   measurements: Record<string, number | null>;
 
@@ -111,8 +111,13 @@ export interface SessionSummary {
   events: SessionEvent[];
   terminal_node_id: string;
   result: string;
-  artifact?: FlowArtifact;  // present on both completion and stop
+  artifact?: FlowArtifact;
   stopped: boolean;
+
+  creator_name: string;
+  creator_type: 'OWNER';
+  date_time: string;
+  rig_identity: string;
 }
 
 export interface CanonicalSerializationResult {
@@ -141,22 +146,22 @@ export class DeterminismError extends Error {
   constructor(
     message: string,
     public stored_hash: string,
-    public exported_hash: string
+    public exported_hash: string,
   ) {
     super(message);
     this.name = 'DeterminismError';
   }
 }
 
-export interface ArtifactSessionState { 
-  artifact_id: string;                   
-  flow_id: string;                       
-  flow_version: string;                  
-  executed_nodes: ExecutedNode[];        
+export interface ArtifactSessionState {
+  artifact_id: string;
+  flow_id: string;
+  flow_version: string;
+  executed_nodes: ExecutedNode[];
   answers: Record<string, any>;
   measurements: Record<string, number | null>;
-  stop_reason: string;                   
-  last_confirmed_state: string;          
+  stop_reason: string;
+  last_confirmed_state: string;
 }
 
 export interface ExecutedNode {
@@ -175,14 +180,14 @@ export interface TerminalArtifactTemplate {
   notes?: string;
 }
 export interface FieldMapping {
-  artifact_field: string;           
+  artifact_field: string;
   source_node_id: string;
   field_type: 'string' | 'number' | 'enum' | 'array';
 }
 export interface FinalizationResult {
-  final_artifact: Record<string, any>;   
-  canonical_json: string;                
-  sha256_hash: string;                   
+  final_artifact: Record<string, any>;
+  canonical_json: string;
+  sha256_hash: string;
   warnings: string[];
 }
 
@@ -198,11 +203,21 @@ export interface ArtifactFinalizationResult {
 export class FinalizationError extends Error {
   constructor(
     message: string,
-    public validation_errors: string[]
+    public validation_errors: string[],
   ) {
     super(message);
     this.name = 'FinalizationError';
   }
+}
+
+export interface RigIdentity {
+  id: string;
+  custom_name?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  vin?: string;
+  created_at: string;
 }
 
 /**
@@ -213,7 +228,7 @@ export class EnumValidationError extends Error {
     message: string,
     public field: string,
     public value: string,
-    public allowed_values: string[]
+    public allowed_values: string[],
   ) {
     super(message);
     this.name = 'EnumValidationError';
@@ -231,8 +246,10 @@ export interface EnumValidationResult {
 }
 
 export const DEFAULT_STRINGS = {
-  STABILIZATION_ACTION: 'Avoid further operation until evaluated by a technician.',
-  RECOMMENDATION: 'Schedule a technician and share this artifact so they can triage the issue quickly.',
+  STABILIZATION_ACTION:
+    'Avoid further operation until evaluated by a technician.',
+  RECOMMENDATION:
+    'Schedule a technician and share this artifact so they can triage the issue quickly.',
 } as const;
 
 export const REQUIRED_BASE_FIELDS = [
@@ -246,7 +263,6 @@ export const REQUIRED_BASE_FIELDS = [
   'stop_reason',
   'last_confirmed_state',
 ] as const;
-
 
 export const REQUIRED_SUFFIX_FIELDS = [
   'safety_notes',

@@ -9,13 +9,27 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { FlowEngine, FlowEngineError, FlowValidationError, ChecksumVerificationError } from './src/utils/FlowEngine';
+import {
+  FlowEngine,
+  FlowEngineError,
+  FlowValidationError,
+  ChecksumVerificationError,
+} from './src/utils/FlowEngine';
 import { FlowChecksumStore } from './src/utils/Flowchecksumstore';
-import { FlowDefinition, MeasureNode, QuestionNode, SafetyNode, SessionState, SessionSummary, TerminalNode } from './src/types';
+import {
+  FlowDefinition,
+  MeasureNode,
+  QuestionNode,
+  SafetyNode,
+  SessionState,
+  SessionSummary,
+  TerminalNode,
+} from './src/types';
 import { QuestionNodeComponent } from './src/components/QuestionNodeComponent';
 import { SafetyNodeComponent } from './src/components/SafetyNodeComponent';
 import { MeasureNodeComponent } from './src/components/MeasureNodeComponent';
 import { TerminalNodeComponent } from './src/components/TerminalNodeComponent';
+import { RVProfileForm } from './src/components/RVProfileForm';
 import { HistoryView } from './src/components/HistoryView';
 import { FlowSelector } from './src/components/FlowSelector';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
@@ -25,14 +39,16 @@ import no_power_issue from './src/flows/flow_1_no_power_inside_rv_v2.json';
 import water_system_issue from './src/flows/flow_2_water_system_issue_v2.json';
 import propane_system_issue from './src/flows/flow_3_propane_system_issue_v2.json';
 import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue_v2.json';
+import { RigIdentityService } from './src/utils/RigIdentityService';
 
-type ViewMode = 'flow-select' | 'diagnostic' | 'history';
+type ViewMode = 'rv-profile' | 'flow-select' | 'diagnostic' | 'history';
 
 const AVAILABLE_FLOWS = [
   {
     flow: no_power_issue as FlowDefinition,
     name: 'No Power Inside RV',
-    description: 'Diagnose 12V and AC power issues in your RV electrical system.',
+    description:
+      'Diagnose 12V and AC power issues in your RV electrical system.',
   },
   {
     flow: water_system_issue as FlowDefinition,
@@ -56,13 +72,22 @@ const isIOS = Platform.OS === 'ios';
 export default function App() {
   const [flowEngine, setFlowEngine] = useState<FlowEngine | null>(null);
   const [sessionState, setSessionState] = useState<SessionState | null>(null);
-  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
+  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(
+    null,
+  );
   const [viewMode, setViewMode] = useState<ViewMode>('flow-select');
   const [history, setHistory] = useState<SessionSummary[]>([]);
 
   useEffect(() => {
-    loadHistory();
-    restoreSession();
+    // Check if user has completed RV profile setup
+    const profileCompleted = StorageService.getProfileCompleted();
+
+    if (!profileCompleted) {
+      setViewMode('rv-profile');
+    } else {
+      loadHistory();
+      restoreSession();
+    }
   }, []);
 
   // ─── Session restore ────────────────────────────────────────────────────────
@@ -76,18 +101,26 @@ export default function App() {
 
     try {
       const matchingFlow = AVAILABLE_FLOWS.find(
-        f => f.flow.flowId === existing.flow_id
+        (f) => f.flow.flowId === existing.flow_id,
       );
       if (!matchingFlow) return;
 
       // Get checksum for verification
-      const expectedChecksum = FlowChecksumStore.getChecksum(matchingFlow.flow.flowId);
-      
+      const expectedChecksum = FlowChecksumStore.getChecksum(
+        matchingFlow.flow.flowId,
+      );
+
       let engine: FlowEngine;
       if (expectedChecksum) {
-        engine = await FlowEngine.createWithChecksum(matchingFlow.flow, expectedChecksum);
+        engine = await FlowEngine.createWithChecksum(
+          matchingFlow.flow,
+          expectedChecksum,
+        );
       } else {
-        console.warn('No checksum for flow during restore:', matchingFlow.flow.flowId);
+        console.warn(
+          'No checksum for flow during restore:',
+          matchingFlow.flow.flowId,
+        );
         engine = FlowEngine.createUnsafe(matchingFlow.flow);
       }
 
@@ -106,15 +139,22 @@ export default function App() {
     setHistory(FlowEngine.getHistory());
   };
 
+  const handleProfileComplete = () => {
+    StorageService.setProfileCompleted(true);
+    loadHistory();
+    restoreSession();
+    setViewMode('flow-select');
+  };
+
   // ─── Flow selection with checksum verification ──────────────────────────────
 
   const handleSelectFlow = async (flow: FlowDefinition) => {
     try {
       // Get expected checksum for this flow
       const expectedChecksum = FlowChecksumStore.getChecksum(flow.flowId);
-      
+
       let engine: FlowEngine;
-      
+
       if (expectedChecksum) {
         // Create engine with checksum verification
         engine = await FlowEngine.createWithChecksum(flow, expectedChecksum);
@@ -122,25 +162,24 @@ export default function App() {
         // Checksum not available - warn and create anyway
         console.warn(
           '[MISSING_CHECKSUM]',
-          `No checksum found for flow ${flow.flowId}. Creating without verification.`
+          `No checksum found for flow ${flow.flowId}. Creating without verification.`,
         );
         engine = FlowEngine.createUnsafe(flow);
       }
-      
+
       setFlowEngine(engine);
       startNewSession(engine);
-      
     } catch (err) {
       if (err instanceof ChecksumVerificationError) {
         // Checksum verification failed - show detailed error
         Alert.alert(
           'Flow Integrity Error',
           `The selected flow has been modified and cannot be executed.\n\n` +
-          `Flow: ${err.flow_id} v${err.flow_version}\n` +
-          `Expected: ${err.expected_hash.substring(0, 16)}...\n` +
-          `Computed: ${err.computed_hash.substring(0, 16)}...\n\n` +
-          `Please contact support.`,
-          [{ text: 'OK' }]
+            `Flow: ${err.flow_id} v${err.flow_version}\n` +
+            `Expected: ${err.expected_hash.substring(0, 16)}...\n` +
+            `Computed: ${err.computed_hash.substring(0, 16)}...\n\n` +
+            `Please contact support.`,
+          [{ text: 'OK' }],
         );
       } else if (err instanceof FlowValidationError) {
         Alert.alert('Invalid Flow', err.message);
@@ -177,20 +216,16 @@ export default function App() {
       setSessionState(updated);
 
       if (updated.completed) {
-        // Build summary from completed state — artifact is already on the state
-        const summary: SessionSummary = {
-          flow_id:          updated.flow_id,
-          flow_version:     updated.flow_version,
-          session_id:       updated.session_id,
-          started_at:       updated.started_at,
-          completed_at:     updated.completed_at!,
-          events:           updated.events,
-          terminal_node_id: updated.terminal_node_id!,
-          result:           updated.result!,
-          artifact:         updated.artifact,
-          stopped:          false,
-        };
-        setSessionSummary(summary);
+        // Load the most recent summary
+        const history = StorageService.getSessionHistory();
+        const latestSummary = history[history.length - 1];
+
+        if (latestSummary) {
+          setSessionSummary(latestSummary);
+        } else {
+          console.error('[handleResponse] Failed to load summary from storage');
+        }
+
         loadHistory();
       }
     } catch (err) {
@@ -219,27 +254,24 @@ export default function App() {
             try {
               const stoppedState = flowEngine.stopSession(sessionState);
               setSessionState(stoppedState);
+              const history = StorageService.getSessionHistory();
+              const latestSummary = history[history.length - 1];
 
-              const summary: SessionSummary = {
-                flow_id:          stoppedState.flow_id,
-                flow_version:     stoppedState.flow_version,
-                session_id:       stoppedState.session_id,
-                started_at:       stoppedState.started_at,
-                completed_at:     stoppedState.stopped_at!,
-                events:           stoppedState.events,
-                terminal_node_id: stoppedState.stop_node_id!,
-                result:           `Diagnostic stopped at: ${stoppedState.stop_node_id}`,
-                artifact:         stoppedState.partial_artifact,
-                stopped:          true,
-              };
-              setSessionSummary(summary);
+              if (latestSummary) {
+                setSessionSummary(latestSummary);
+              } else {
+                console.error(
+                  '[handleStop] Failed to load summary from storage',
+                );
+              }
+
               loadHistory();
             } catch (err) {
               Alert.alert('Error', 'Failed to stop session');
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -268,7 +300,7 @@ export default function App() {
             loadHistory();
           },
         },
-      ]
+      ],
     );
   };
 
@@ -290,7 +322,7 @@ export default function App() {
             loadHistory();
           },
         },
-      ]
+      ],
     );
   };
 
@@ -301,19 +333,45 @@ export default function App() {
     if (sessionInProgress) {
       Alert.alert(
         'Session In Progress',
-        'Going back will stop the diagnostic and save a partial summary. Continue?',
+        'Going back will abort the diagnostic. Continue?',
         [
           { text: 'Cancel', style: 'cancel' },
           {
-            text: 'Stop & Go Back',
+            text: 'Abort & Go Back',
             style: 'destructive',
             onPress: () => {
-              // Save partial artifact before leaving
               if (flowEngine && sessionState) {
                 try {
-                  flowEngine.stopSession(sessionState);
-                } catch {}
+                  const rigIdentity = RigIdentityService.getOrCreate();
+
+                  const summary: SessionSummary = {
+                    flow_id: sessionState.flow_id,
+                    flow_version: sessionState.flow_version,
+                    session_id: sessionState.session_id,
+                    started_at: sessionState.started_at,
+                    completed_at: new Date().toISOString(),
+                    events: sessionState.events,
+                    terminal_node_id: sessionState.current_node_id || 'aborted',
+                    result: 'Diagnostic aborted by user',
+                    artifact: undefined, // No artifact for aborted sessions
+                    stopped: false, // This is an abort, not a stop
+
+                    // MS6 Contract Fields
+                    creator_name: rigIdentity.custom_name || 'Owner',
+                    creator_type: 'OWNER',
+                    date_time: new Date().toISOString(),
+                    rig_identity: rigIdentity.id,
+                  };
+
+                  // Save to history
+                  StorageService.saveSessionSummary(summary);
+                } catch (err) {
+                  console.error('Failed to save aborted session:', err);
+                }
               }
+
+              // Clear state
+              StorageService.clearSessionState();
               setFlowEngine(null);
               setSessionState(null);
               setSessionSummary(null);
@@ -321,7 +379,7 @@ export default function App() {
               loadHistory();
             },
           },
-        ]
+        ],
       );
     } else {
       setFlowEngine(null);
@@ -332,6 +390,17 @@ export default function App() {
   };
 
   // ─── Render ─────────────────────────────────────────────────────────────────
+
+  if (viewMode === 'rv-profile') {
+  return (
+    <ErrorBoundary>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <RVProfileForm onComplete={handleProfileComplete} />
+      </SafeAreaView>
+    </ErrorBoundary>
+  );
+}
 
   if (viewMode === 'history') {
     return (
@@ -382,8 +451,8 @@ export default function App() {
             {sessionInProgress
               ? `Step ${sessionState.events.length + 1}`
               : sessionState.stopped
-              ? 'Stopped'
-              : 'Complete'}
+                ? 'Stopped'
+                : 'Complete'}
           </Text>
           <View style={styles.headerActions}>
             {sessionInProgress && (
@@ -423,7 +492,11 @@ export default function App() {
             sessionState.completed ||
             sessionState.stopped) && (
             <TerminalNodeComponent
-              node={currentNode.type === 'TERMINAL' ? currentNode as unknown as TerminalNode : null}
+              node={
+                currentNode.type === 'TERMINAL'
+                  ? (currentNode as unknown as TerminalNode)
+                  : null
+              }
               summary={sessionSummary}
               onStartNew={() => startNewSession()}
               onViewHistory={showHistory}

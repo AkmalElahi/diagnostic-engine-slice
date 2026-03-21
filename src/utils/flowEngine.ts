@@ -16,6 +16,7 @@ import {
   FlowValidationError,
   resolveMeasureBranch,
 } from './FlowValidator';
+import { RigIdentityService } from './RigIdentityService';
 
 
 export { FlowValidationError, ChecksumVerificationError };
@@ -320,6 +321,8 @@ export class FlowEngine {
   }
 
   private generateSummary(sessionState: SessionState): void {
+    const rigIdentity = RigIdentityService.getOrCreate();
+
     const summary: SessionSummary = {
       flow_id: sessionState.flow_id,
       flow_version: sessionState.flow_version,
@@ -331,6 +334,11 @@ export class FlowEngine {
       result: sessionState.result || '',
       artifact: sessionState.artifact || sessionState.partial_artifact,
       stopped: sessionState.stopped,
+
+      creator_name: rigIdentity.custom_name || 'Owner',
+      creator_type: 'OWNER',
+      date_time: new Date().toISOString(),
+      rig_identity: rigIdentity.id,
     };
     
     StorageService.saveSessionSummary(summary);
