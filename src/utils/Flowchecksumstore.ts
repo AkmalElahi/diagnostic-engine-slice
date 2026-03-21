@@ -1,8 +1,8 @@
 export const FLOW_CHECKSUMS: Record<string, string> = {
-  'flow_1_no_power_inside_rv': '450f8a54124d280910f022f59c99ed4053e343bb4ab2f000c72e19ab60af157d',
-  'flow_2_water_system_issue': '654e6cd5c07ae2e0f7996fab20b85ff35e3fa13e5026b296ca91efa78883f04f',
-  'flow_3_propane_system_issue': '2bcc4dc010a2f29a33576a86cadbd04eb33681871a8c47bf708d1582114cd4f1',
-  'flow_4_slides_leveling_issue': 'a9eb27fe0822a1ed09f58a1449a2dae65cc77219bda05f303c396dbbaa8554fd',
+  'flow_1_no_power_inside_rv': '0e8e2ad6062f08385e23e4691a3d415fa91091dec62878ad912c2318f2a6e2f6',  // Use React Native's hash
+  'flow_2_water_system_issue': 'b6bad7434d9c239037fd89a71383d3fc3263fef70d6ead3d1978a732027d4ef3',
+  'flow_3_propane_system_issue': '66e2ab48ee466965473bdacf7a9592ab2e7b3705cfcc9faa9aaf1bcb93731357',
+  'flow_4_slides_leveling_issue': '10986c83c3529f8399cc91cfe62c37354499c942df8313f0f4555fea8a3d096a',
 };
 
 export class FlowChecksumStore {
