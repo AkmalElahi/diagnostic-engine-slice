@@ -12,8 +12,10 @@ interface Props {
   onViewEquipment: () => void;
   onViewHistory: () => void;
   onViewProfile: () => void;
+  onViewMaintenance: () => void;
   historyCount: number;
   equipmentCount: number;
+  maintenanceCount: number;
 }
 
 export const HomeScreen: React.FC<Props> = ({
@@ -21,8 +23,10 @@ export const HomeScreen: React.FC<Props> = ({
   onViewEquipment,
   onViewHistory,
   onViewProfile,
+  onViewMaintenance,
   historyCount,
   equipmentCount,
+  maintenanceCount,
 }) => {
   return (
     <SafeAreaView style={styles.container}>
@@ -33,9 +37,7 @@ export const HomeScreen: React.FC<Props> = ({
           <Text style={styles.subtitle}>Diagnostic Tool</Text>
         </View>
 
-        {/* Menu */}
         <View style={styles.menu}>
-          {/* Run Diagnostic */}
           <TouchableOpacity
             style={[styles.menuItem, styles.primaryButton]}
             onPress={onRunDiagnostic}
@@ -47,12 +49,7 @@ export const HomeScreen: React.FC<Props> = ({
               </Text>
             </View>
           </TouchableOpacity>
-
-          {/* Equipment Inventory */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={onViewEquipment}
-          >
+          <TouchableOpacity style={styles.menuItem} onPress={onViewEquipment}>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>Equipment Inventory</Text>
               <Text style={styles.menuDescription}>
@@ -61,12 +58,16 @@ export const HomeScreen: React.FC<Props> = ({
             </View>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
-
-          {/* History */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={onViewHistory}
-          >
+          <TouchableOpacity style={styles.menuItem} onPress={onViewMaintenance}>
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuTitle}>Maintenance Log</Text>
+              <Text style={styles.menuDescription}>
+                {maintenanceCount} entries
+              </Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={onViewHistory}>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>Diagnostic History</Text>
               <Text style={styles.menuDescription}>
@@ -75,12 +76,7 @@ export const HomeScreen: React.FC<Props> = ({
             </View>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
-
-          {/* RV Profile */}
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={onViewProfile}
-          >
+          <TouchableOpacity style={styles.menuItem} onPress={onViewProfile}>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>RV Profile</Text>
               <Text style={styles.menuDescription}>

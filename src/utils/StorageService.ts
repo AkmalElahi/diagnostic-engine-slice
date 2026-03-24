@@ -1,5 +1,5 @@
 import { createMMKV } from 'react-native-mmkv';
-import { EquipmentItem, SessionState, SessionSummary } from '../types';
+import { EquipmentItem, MaintenanceEntry, SessionState, SessionSummary } from '../types';
 
 // Initialize MMKV storage
 const storage = createMMKV({
@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   SESSION_HISTORY: 'session_history',
   PROFILE_COMPLETED: 'rv_profile_completed',
   EQUIPMENT_INVENTORY: 'equipment_inventory',
+  MAINTENANCE_HISTORY: 'maintenance_history',
 } as const;
 
 export class StorageError extends Error {
@@ -75,10 +76,13 @@ export class StorageService {
     try {
       const data = storage.getString(STORAGE_KEYS.EQUIPMENT_INVENTORY);
       if (!data) return [];
-      
+
       return JSON.parse(data) as EquipmentItem[];
     } catch (error) {
-      console.error('[StorageService] Failed to get equipment inventory:', error);
+      console.error(
+        '[StorageService] Failed to get equipment inventory:',
+        error,
+      );
       return [];
     }
   }
@@ -86,9 +90,16 @@ export class StorageService {
   static saveEquipmentInventory(items: EquipmentItem[]): void {
     try {
       storage.set(STORAGE_KEYS.EQUIPMENT_INVENTORY, JSON.stringify(items));
-      console.log('[StorageService] Equipment inventory saved:', items.length, 'items');
+      console.log(
+        '[StorageService] Equipment inventory saved:',
+        items.length,
+        'items',
+      );
     } catch (error) {
-      console.error('[StorageService] Failed to save equipment inventory:', error);
+      console.error(
+        '[StorageService] Failed to save equipment inventory:',
+        error,
+      );
       throw error;
     }
   }
@@ -98,7 +109,54 @@ export class StorageService {
       storage.remove(STORAGE_KEYS.EQUIPMENT_INVENTORY);
       console.log('[StorageService] Equipment inventory cleared');
     } catch (error) {
-      console.error('[StorageService] Failed to clear equipment inventory:', error);
+      console.error(
+        '[StorageService] Failed to clear equipment inventory:',
+        error,
+      );
+    }
+  }
+
+  static getMaintenanceHistory(): MaintenanceEntry[] {
+    try {
+      const data = storage.getString(STORAGE_KEYS.MAINTENANCE_HISTORY);
+      if (!data) return [];
+
+      return JSON.parse(data) as MaintenanceEntry[];
+    } catch (error) {
+      console.error(
+        '[StorageService] Failed to get maintenance history:',
+        error,
+      );
+      return [];
+    }
+  }
+
+  static saveMaintenanceHistory(entries: MaintenanceEntry[]): void {
+    try {
+      storage.set(STORAGE_KEYS.MAINTENANCE_HISTORY, JSON.stringify(entries));
+      console.log(
+        '[StorageService] Maintenance history saved:',
+        entries.length,
+        'entries',
+      );
+    } catch (error) {
+      console.error(
+        '[StorageService] Failed to save maintenance history:',
+        error,
+      );
+      throw error;
+    }
+  }
+
+  static clearMaintenanceHistory(): void {
+    try {
+      storage.remove(STORAGE_KEYS.MAINTENANCE_HISTORY);
+      console.log('[StorageService] Maintenance history cleared');
+    } catch (error) {
+      console.error(
+        '[StorageService] Failed to clear maintenance history:',
+        error,
+      );
     }
   }
 

@@ -46,6 +46,8 @@ import propane_system_issue from './src/flows/flow_3_propane_system_issue_v2.jso
 import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue_v2.json';
 import { RigIdentityService } from './src/utils/RigIdentityService';
 import { EquipmentService } from './src/utils/Equipmentservice';
+import { MaintenanceLogScreen } from './src/Screens/Maintenancelogscreen';
+import { MaintenanceService } from './src/utils/Maintenanceservice';
 
 type ViewMode =
   | 'home'
@@ -53,7 +55,8 @@ type ViewMode =
   | 'flow-select'
   | 'diagnostic'
   | 'history'
-  | 'equipment';
+  | 'equipment'
+  | 'maintenance';
 
 const AVAILABLE_FLOWS = [
   {
@@ -302,6 +305,14 @@ export default function App() {
     setViewMode('equipment');
   };
 
+  const showMaintenance = () => {
+    setViewMode('maintenance');
+  };
+
+  const closeMaintenance = () => {
+    setViewMode(sessionState ? 'diagnostic' : 'home');
+  };
+
   const closeEquipment = () => {
     setViewMode(sessionState ? 'diagnostic' : 'home');
   };
@@ -430,8 +441,10 @@ export default function App() {
             onViewEquipment={showEquipment}
             onViewHistory={showHistory}
             onViewProfile={() => setViewMode('rv-profile')}
+            onViewMaintenance={showMaintenance}
             historyCount={history.length}
             equipmentCount={EquipmentService.getEquipmentCount()}
+            maintenanceCount={MaintenanceService.getMaintenanceCount()}
           />
         </SafeAreaView>
       </ErrorBoundary>
@@ -444,6 +457,17 @@ export default function App() {
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="dark-content" />
           <EquipmentInventoryForm onBack={closeEquipment} />
+        </SafeAreaView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (viewMode === 'maintenance') {
+    return (
+      <ErrorBoundary>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <MaintenanceLogScreen onBack={closeMaintenance} />
         </SafeAreaView>
       </ErrorBoundary>
     );

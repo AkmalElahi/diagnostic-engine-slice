@@ -275,6 +275,48 @@ export interface EnumValidationResult {
   allowed_values?: string[];
 }
 
+export type MaintenanceType = 'REPAIR' | 'UPGRADE' | 'PREVENTATIVE' | 'INSTALLATION';
+export interface MaintenanceArtifact {
+  maintenance_artifact_schema_version: '1.0';
+  creator_name: string;
+  creator_type: 'OWNER' | 'TECHNICIAN';
+  date_time: string;
+  rig_identity: string;
+  maintenance_date: string;
+  maintenance_type: MaintenanceType;
+  component_type: string;
+  description: string;
+  performed_by?: string;
+  part_number?: string;
+  equipment_id?: string;
+}
+export interface MaintenanceEntry {
+  id: string;
+  rig_id: string;
+  created_at: string;
+  artifact: MaintenanceArtifact;
+}
+
+export const MAINTENANCE_TYPES: readonly MaintenanceType[] = [
+  'REPAIR',
+  'UPGRADE',
+  'PREVENTATIVE',
+  'INSTALLATION',
+] as const;
+
+/**
+ * Helper to get display name for maintenance type
+ */
+export function getMaintenanceTypeLabel(type: MaintenanceType): string {
+  const labels: Record<MaintenanceType, string> = {
+    REPAIR: 'Repair',
+    UPGRADE: 'Upgrade',
+    PREVENTATIVE: 'Preventative Maintenance',
+    INSTALLATION: 'Installation',
+  };
+  return labels[type];
+}
+
 export const DEFAULT_STRINGS = {
   STABILIZATION_ACTION:
     'Avoid further operation until evaluated by a technician.',
