@@ -1,5 +1,5 @@
 import { createMMKV } from 'react-native-mmkv';
-import { SessionState, SessionSummary } from '../types';
+import { EquipmentItem, SessionState, SessionSummary } from '../types';
 
 // Initialize MMKV storage
 const storage = createMMKV({
@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   SESSION_STATE: 'session_state',
   SESSION_HISTORY: 'session_history',
   PROFILE_COMPLETED: 'rv_profile_completed',
+  EQUIPMENT_INVENTORY: 'equipment_inventory',
 } as const;
 
 export class StorageError extends Error {
@@ -67,6 +68,37 @@ export class StorageService {
         '[StorageService] Failed to reset profile completion status:',
         error,
       );
+    }
+  }
+
+  static getEquipmentInventory(): EquipmentItem[] {
+    try {
+      const data = storage.getString(STORAGE_KEYS.EQUIPMENT_INVENTORY);
+      if (!data) return [];
+      
+      return JSON.parse(data) as EquipmentItem[];
+    } catch (error) {
+      console.error('[StorageService] Failed to get equipment inventory:', error);
+      return [];
+    }
+  }
+
+  static saveEquipmentInventory(items: EquipmentItem[]): void {
+    try {
+      storage.set(STORAGE_KEYS.EQUIPMENT_INVENTORY, JSON.stringify(items));
+      console.log('[StorageService] Equipment inventory saved:', items.length, 'items');
+    } catch (error) {
+      console.error('[StorageService] Failed to save equipment inventory:', error);
+      throw error;
+    }
+  }
+
+  static clearEquipmentInventory(): void {
+    try {
+      storage.remove(STORAGE_KEYS.EQUIPMENT_INVENTORY);
+      console.log('[StorageService] Equipment inventory cleared');
+    } catch (error) {
+      console.error('[StorageService] Failed to clear equipment inventory:', error);
     }
   }
 

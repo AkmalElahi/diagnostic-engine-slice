@@ -25,10 +25,15 @@ import {
   SessionSummary,
   TerminalNode,
 } from './src/types';
+
+import { HomeScreen } from './src/Screens/HomeScreen';
+
 import { QuestionNodeComponent } from './src/components/QuestionNodeComponent';
 import { SafetyNodeComponent } from './src/components/SafetyNodeComponent';
 import { MeasureNodeComponent } from './src/components/MeasureNodeComponent';
 import { TerminalNodeComponent } from './src/components/TerminalNodeComponent';
+import { EquipmentInventoryForm } from './src/components/EquipmentInventoryForm';
+
 import { RVProfileForm } from './src/components/RVProfileForm';
 import { HistoryView } from './src/components/HistoryView';
 import { FlowSelector } from './src/components/FlowSelector';
@@ -40,8 +45,15 @@ import water_system_issue from './src/flows/flow_2_water_system_issue_v2.json';
 import propane_system_issue from './src/flows/flow_3_propane_system_issue_v2.json';
 import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue_v2.json';
 import { RigIdentityService } from './src/utils/RigIdentityService';
+import { EquipmentService } from './src/utils/Equipmentservice';
 
-type ViewMode = 'rv-profile' | 'flow-select' | 'diagnostic' | 'history';
+type ViewMode =
+  | 'home'
+  | 'rv-profile'
+  | 'flow-select'
+  | 'diagnostic'
+  | 'history'
+  | 'equipment';
 
 const AVAILABLE_FLOWS = [
   {
@@ -85,6 +97,7 @@ export default function App() {
     if (!profileCompleted) {
       setViewMode('rv-profile');
     } else {
+      setViewMode('home');
       loadHistory();
       restoreSession();
     }
@@ -143,7 +156,7 @@ export default function App() {
     StorageService.setProfileCompleted(true);
     loadHistory();
     restoreSession();
-    setViewMode('flow-select');
+    setViewMode('home');
   };
 
   // ─── Flow selection with checksum verification ──────────────────────────────
@@ -277,13 +290,29 @@ export default function App() {
 
   // ─── Navigation ─────────────────────────────────────────────────────────────
 
+  const showHome = () => {
+    setViewMode('home');
+  };
+
+  const showFlowSelect = () => {
+    setViewMode('flow-select');
+  };
+
+  const showEquipment = () => {
+    setViewMode('equipment');
+  };
+
+  const closeEquipment = () => {
+    setViewMode(sessionState ? 'diagnostic' : 'home');
+  };
+
   const showHistory = () => {
     loadHistory();
     setViewMode('history');
   };
 
   const closeHistory = () => {
-    setViewMode(sessionState ? 'diagnostic' : 'flow-select');
+    setViewMode(sessionState ? 'diagnostic' : 'home');
   };
 
   const clearHistory = () => {
@@ -375,7 +404,7 @@ export default function App() {
               setFlowEngine(null);
               setSessionState(null);
               setSessionSummary(null);
-              setViewMode('flow-select');
+              setViewMode('home');
               loadHistory();
             },
           },
@@ -385,22 +414,51 @@ export default function App() {
       setFlowEngine(null);
       setSessionState(null);
       setSessionSummary(null);
-      setViewMode('flow-select');
+      setViewMode('home');
     }
   };
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
+  if (viewMode === 'home') {
+    return (
+      <ErrorBoundary>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <HomeScreen
+            onRunDiagnostic={showFlowSelect}
+            onViewEquipment={showEquipment}
+            onViewHistory={showHistory}
+            onViewProfile={() => setViewMode('rv-profile')}
+            historyCount={history.length}
+            equipmentCount={EquipmentService.getEquipmentCount()}
+          />
+        </SafeAreaView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (viewMode === 'equipment') {
+    return (
+      <ErrorBoundary>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <EquipmentInventoryForm onBack={closeEquipment} />
+        </SafeAreaView>
+      </ErrorBoundary>
+    );
+  }
+
   if (viewMode === 'rv-profile') {
-  return (
-    <ErrorBoundary>
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <RVProfileForm onComplete={handleProfileComplete} />
-      </SafeAreaView>
-    </ErrorBoundary>
-  );
-}
+    return (
+      <ErrorBoundary>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <RVProfileForm onComplete={handleProfileComplete} />
+        </SafeAreaView>
+      </ErrorBoundary>
+    );
+  }
 
   if (viewMode === 'history') {
     return (

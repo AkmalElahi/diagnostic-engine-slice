@@ -220,6 +220,36 @@ export interface RigIdentity {
   created_at: string;
 }
 
+export interface EquipmentItem {
+  id: string;
+  rig_id: string;
+  category: string;
+  name: string;
+  manufacturer?: string;
+  model_number?: string;
+  serial_number?: string;
+  installation_date?: string;
+  warranty_expiration?: string;
+  notes?: string;
+  created_at: string;
+}
+ 
+export const EQUIPMENT_CATEGORIES = [
+  'Appliance',
+  'Electrical',
+  'Plumbing',
+  'HVAC',
+  'Safety',
+  'Leveling',
+  'Slide-Out',
+  'Propane',
+  'Water',
+  'Entertainment',
+  'Other',
+] as const;
+ 
+export type EquipmentCategory = typeof EQUIPMENT_CATEGORIES[number];
+ 
 /**
  * Enum validation error with details
  */
@@ -270,3 +300,5 @@ export const REQUIRED_SUFFIX_FIELDS = [
   'recommendations',
   'notes',
 ] as const;
+
+
