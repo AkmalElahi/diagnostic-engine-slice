@@ -65,21 +65,21 @@ const AVAILABLE_FLOWS = [
     description:
       'Diagnose 12V and AC power issues in your RV electrical system.',
   },
-  {
-    flow: water_system_issue as FlowDefinition,
-    name: 'Water System Issue',
-    description: 'Diagnose city water and fresh tank water system problems.',
-  },
-  {
-    flow: propane_system_issue as FlowDefinition,
-    name: 'Propane System Issue',
-    description: 'Diagnose propane supply, valves, and appliance issues.',
-  },
-  {
-    flow: slides_leveling_issue as FlowDefinition,
-    name: 'Slides and Leveling Systems',
-    description: 'Diagnose slide-out movement and leveling system issues.',
-  },
+  // {
+  //   flow: water_system_issue as FlowDefinition,
+  //   name: 'Water System Issue',
+  //   description: 'Diagnose city water and fresh tank water system problems.',
+  // },
+  // {
+  //   flow: propane_system_issue as FlowDefinition,
+  //   name: 'Propane System Issue',
+  //   description: 'Diagnose propane supply, valves, and appliance issues.',
+  // },
+  // {
+  //   flow: slides_leveling_issue as FlowDefinition,
+  //   name: 'Slides and Leveling Systems',
+  //   description: 'Diagnose slide-out movement and leveling system issues.',
+  // },
 ];
 
 const isIOS = Platform.OS === 'ios';
@@ -520,6 +520,10 @@ export default function App() {
   const currentNode = flowEngine.getCurrentNode(sessionState);
   const sessionInProgress = !sessionState.completed && !sessionState.stopped;
 
+  const totalSteps = sessionState.events.length + 1;
+  const progressPercentage = sessionInProgress
+    ? Math.min((totalSteps / 15) * 100, 95)
+    : 100;
   return (
     <ErrorBoundary>
       <SafeAreaView style={styles.container}>
@@ -529,22 +533,32 @@ export default function App() {
           <TouchableOpacity onPress={backToFlowSelect}>
             <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
-          <Text style={styles.headerText}>
-            {sessionInProgress
-              ? `Step ${sessionState.events.length + 1}`
-              : sessionState.stopped
-                ? 'Stopped'
-                : 'Complete'}
-          </Text>
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBarBackground}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  {
+                    width: `${progressPercentage}%`,
+                    backgroundColor: sessionState.stopped
+                      ? '#ff9800'
+                      : sessionState.completed
+                        ? '#4caf50'
+                        : '#2196F3',
+                  },
+                ]}
+              />
+            </View>
+          </View>
           <View style={styles.headerActions}>
             {sessionInProgress && (
               <TouchableOpacity onPress={handleStop} style={styles.stopButton}>
                 <Text style={styles.stopButtonText}>Stop</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={resetApp}>
+            {/* <TouchableOpacity onPress={resetApp}>
               <Text style={styles.resetLink}>Reset</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 
@@ -595,6 +609,33 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: isIOS ? 0 : 30,
     backgroundColor: '#fff',
+  },
+  progressContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 12,
+  },
+  progressBarBackground: {
+    width: '100%',
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+  },
+
+  content: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

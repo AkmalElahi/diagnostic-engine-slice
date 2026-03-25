@@ -166,7 +166,7 @@ export const MaintenanceLogScreen: React.FC<Props> = ({ onBack }) => {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.entryCard}
-              onPress={() => handleEditEntry(item)}
+            //   onPress={() => handleEditEntry(item)}
             >
               <View style={styles.entryHeader}>
                 <View style={styles.entryInfo}>
@@ -179,12 +179,12 @@ export const MaintenanceLogScreen: React.FC<Props> = ({ onBack }) => {
                     ).toLocaleDateString()}
                   </Text>
                 </View>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   onPress={() => handleDeleteEntry(item)}
                   style={styles.deleteButton}
                 >
                   <Text style={styles.deleteButtonText}>×</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
               <Text style={styles.entryComponent}>
                 {item.artifact.component_type}
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
   backButton: { fontSize: 16, color: '#2196F3' },
   title: { fontSize: 18, fontWeight: 'bold', color: '#333' },
   addButton: { fontSize: 16, color: '#2196F3', fontWeight: '600' },
-  filterScroll: { maxHeight: 50 },
+  filterScroll: { maxHeight: 50, marginTop: 10 },
   filterContainer: { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
   filterButton: {
     paddingHorizontal: 16,

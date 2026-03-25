@@ -63,14 +63,14 @@ export const HistoryView: React.FC<Props> = ({ history, onClose, onClearHistory 
         )}
       </ScrollView>
 
-      {history.length > 0 && (
+      {/* {history.length > 0 && (
         <TouchableOpacity
           style={styles.clearButton}
           onPress={onClearHistory}
         >
           <Text style={styles.clearButtonText}>CLEAR HISTORY</Text>
         </TouchableOpacity>
-      )}
+      )} */}
     </View>
   );
 };

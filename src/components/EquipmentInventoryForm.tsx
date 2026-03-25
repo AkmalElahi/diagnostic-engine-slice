@@ -181,19 +181,19 @@ export const EquipmentInventoryForm: React.FC<Props> = ({ onBack }) => {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.equipmentCard}
-              onPress={() => handleEditEquipment(item)}
+              // onPress={() => handleEditEquipment(item)}
             >
               <View style={styles.equipmentHeader}>
                 <View style={styles.equipmentInfo}>
                   <Text style={styles.equipmentName}>{item.name}</Text>
                   <Text style={styles.equipmentCategory}>{item.category}</Text>
                 </View>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   onPress={() => handleDeleteEquipment(item)}
                   style={styles.deleteButton}
                 >
                   <Text style={styles.deleteButtonText}>×</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
 
               {item.manufacturer && (
