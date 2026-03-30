@@ -1,8 +1,8 @@
 import { SessionState, SessionEvent, SessionSummary } from '../types';
-import { StorageService } from './StorageService';
-import { ArtifactFinalizationService } from './Artifactfinalizationservice';
+import { StorageService } from '../services/StorageService';
+import { ArtifactFinalizationService } from '../services/Artifactfinalizationservice';
 import { ArtifactIdGenerator } from './ArtifactIdGenerator';
-import { FlowChecksumValidator, ChecksumVerificationError } from './Flowchecksumvalidator';
+import { FlowChecksumValidator, ChecksumVerificationError } from '../validators/Flowchecksumvalidator';
 import { createMMKV } from 'react-native-mmkv';
 import {
   RawFlow,
@@ -15,8 +15,8 @@ import {
   FlowValidator,
   FlowValidationError,
   resolveMeasureBranch,
-} from './FlowValidator';
-import { RigIdentityService } from './RigIdentityService';
+} from '../validators/FlowValidator';
+import { RigIdentityService } from '../services/RigIdentityService';
 
 
 export { FlowValidationError, ChecksumVerificationError };

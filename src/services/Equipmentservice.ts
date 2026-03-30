@@ -1,6 +1,6 @@
 import { EquipmentItem } from '../types';
-import { RigIdentityService } from './RigIdentityService';
-import { StorageService } from './StorageService';
+import { RigIdentityService } from '../services/RigIdentityService';
+import { StorageService } from '../services/StorageService';
 import * as Crypto from 'expo-crypto';
 
 export class EquipmentService {

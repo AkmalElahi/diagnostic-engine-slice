@@ -4,8 +4,8 @@ import {
   ChecksumVerificationError,
   EnumValidationError,
   RawFlow,
-} from '../utils/FlowValidator';
-import { FlowChecksumValidator } from '../utils/Flowchecksumvalidator';
+} from '../validators/FlowValidator';
+import { FlowChecksumValidator } from '../validators/Flowchecksumvalidator';
 
 describe('FlowValidator  Validation', () => {
   // Sample valid flow for testing

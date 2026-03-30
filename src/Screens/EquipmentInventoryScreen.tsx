@@ -10,14 +10,14 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { EquipmentService } from '../utils/Equipmentservice';
+import { EquipmentService } from '../services/Equipmentservice';
 import { EquipmentItem, EQUIPMENT_CATEGORIES } from '../types';
 
 interface Props {
   onBack: () => void;
 }
 
-export const EquipmentInventoryForm: React.FC<Props> = ({ onBack }) => {
+export const EquipmentInventoryScreen: React.FC<Props> = ({ onBack }) => {
   const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');

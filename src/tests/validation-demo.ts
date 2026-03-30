@@ -1,4 +1,4 @@
-import { FlowValidator, FlowValidationError } from '../utils/FlowValidator';
+import { FlowValidator, FlowValidationError } from '../validators/FlowValidator';
 
 interface InvalidFlowTest {
   name: string;

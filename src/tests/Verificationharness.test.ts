@@ -1,6 +1,6 @@
 import { FlowEngine } from '../utils/FlowEngine';
 import { CanonicalSerializer } from '../utils/CanonicalSerializer';
-import { RawFlow } from '../utils/FlowValidator';
+import { RawFlow } from '../validators/FlowValidator';
 import * as fs from 'fs';
 import * as path from 'path';
 

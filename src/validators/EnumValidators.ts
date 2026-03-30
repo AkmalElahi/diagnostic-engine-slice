@@ -1,5 +1,5 @@
 import { EnumValidationError, EnumValidationResult } from '../types';
-import artifactEnums from '../validators/artifact_enums_v1_1.json';
+import artifactEnums from './artifact_enums_v1_1.json';
 
 export class EnumValidator {
   private static enumDefinitions: Record<string, string[]> = artifactEnums.fields;

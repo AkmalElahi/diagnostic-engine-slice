@@ -6,13 +6,13 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import { RigIdentityService } from '../utils/RigIdentityService';
+import { RigIdentityService } from '../services/RigIdentityService';
 
 interface Props {
   onComplete: () => void;
 }
 
-export const RVProfileForm: React.FC<Props> = ({ onComplete }) => {
+export const RVProfileScreen: React.FC<Props> = ({ onComplete }) => {
   const [rvName, setRvName] = useState('');
   const rig = RigIdentityService.getOrCreate();
 

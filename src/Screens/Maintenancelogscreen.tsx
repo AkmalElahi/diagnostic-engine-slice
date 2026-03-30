@@ -10,8 +10,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { MaintenanceService } from '../utils/Maintenanceservice';
-import { EquipmentService } from '../utils/Equipmentservice';
+
 import {
   MaintenanceEntry,
   MaintenanceType,
@@ -19,6 +18,9 @@ import {
   getMaintenanceTypeLabel,
   EQUIPMENT_CATEGORIES
 } from '../types';
+
+import { MaintenanceService } from '../services/Maintenanceservice';
+import { EquipmentService } from '../services/Equipmentservice';
 
 interface Props {
   onBack: () => void;

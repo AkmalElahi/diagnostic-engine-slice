@@ -9,13 +9,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import {
-  FlowEngine,
-  FlowEngineError,
-  FlowValidationError,
-  ChecksumVerificationError,
-} from './src/utils/FlowEngine';
-import { FlowChecksumStore } from './src/utils/Flowchecksumstore';
+
 import {
   FlowDefinition,
   MeasureNode,
@@ -26,28 +20,31 @@ import {
   TerminalNode,
 } from './src/types';
 
+import no_power_issue from './src/flows/flow_1_no_power_inside_rv_v2.json';
+import water_system_issue from './src/flows/flow_2_water_system_issue_v2.json';
+import propane_system_issue from './src/flows/flow_3_propane_system_issue_v2.json';
+import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue_v2.json';
+
+import { FlowEngine, FlowEngineError, FlowValidationError, ChecksumVerificationError } from './src/utils/FlowEngine';
+import { FlowChecksumStore } from './src/utils/Flowchecksumstore';
+
+import { RigIdentityService } from './src/services/RigIdentityService';
+import { StorageService } from './src/services/StorageService';
+import { MaintenanceService } from './src/services/Maintenanceservice';
+import { EquipmentService } from './src/services/Equipmentservice';
+
 import { HomeScreen } from './src/Screens/HomeScreen';
+import { EquipmentInventoryScreen } from './src/Screens/EquipmentInventoryScreen';
+import { RVProfileScreen } from './src/Screens/RVProfileScreen';
+import { MaintenanceLogScreen } from './src/Screens/Maintenancelogscreen';
 
 import { QuestionNodeComponent } from './src/components/QuestionNodeComponent';
 import { SafetyNodeComponent } from './src/components/SafetyNodeComponent';
 import { MeasureNodeComponent } from './src/components/MeasureNodeComponent';
 import { TerminalNodeComponent } from './src/components/TerminalNodeComponent';
-import { EquipmentInventoryForm } from './src/components/EquipmentInventoryForm';
-
-import { RVProfileForm } from './src/components/RVProfileForm';
-import { HistoryView } from './src/components/HistoryView';
 import { FlowSelector } from './src/components/FlowSelector';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
-import { StorageService } from './src/utils/StorageService';
-
-import no_power_issue from './src/flows/flow_1_no_power_inside_rv_v2.json';
-import water_system_issue from './src/flows/flow_2_water_system_issue_v2.json';
-import propane_system_issue from './src/flows/flow_3_propane_system_issue_v2.json';
-import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue_v2.json';
-import { RigIdentityService } from './src/utils/RigIdentityService';
-import { EquipmentService } from './src/utils/Equipmentservice';
-import { MaintenanceLogScreen } from './src/Screens/Maintenancelogscreen';
-import { MaintenanceService } from './src/utils/Maintenanceservice';
+import { HistoryView } from './src/components/HistoryView';
 
 type ViewMode =
   | 'home'
@@ -65,21 +62,21 @@ const AVAILABLE_FLOWS = [
     description:
       'Diagnose 12V and AC power issues in your RV electrical system.',
   },
-  // {
-  //   flow: water_system_issue as FlowDefinition,
-  //   name: 'Water System Issue',
-  //   description: 'Diagnose city water and fresh tank water system problems.',
-  // },
-  // {
-  //   flow: propane_system_issue as FlowDefinition,
-  //   name: 'Propane System Issue',
-  //   description: 'Diagnose propane supply, valves, and appliance issues.',
-  // },
-  // {
-  //   flow: slides_leveling_issue as FlowDefinition,
-  //   name: 'Slides and Leveling Systems',
-  //   description: 'Diagnose slide-out movement and leveling system issues.',
-  // },
+  {
+    flow: water_system_issue as FlowDefinition,
+    name: 'Water System Issue',
+    description: 'Diagnose city water and fresh tank water system problems.',
+  },
+  {
+    flow: propane_system_issue as FlowDefinition,
+    name: 'Propane System Issue',
+    description: 'Diagnose propane supply, valves, and appliance issues.',
+  },
+  {
+    flow: slides_leveling_issue as FlowDefinition,
+    name: 'Slides and Leveling Systems',
+    description: 'Diagnose slide-out movement and leveling system issues.',
+  },
 ];
 
 const isIOS = Platform.OS === 'ios';
@@ -456,7 +453,7 @@ export default function App() {
       <ErrorBoundary>
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="dark-content" />
-          <EquipmentInventoryForm onBack={closeEquipment} />
+          <EquipmentInventoryScreen onBack={closeEquipment} />
         </SafeAreaView>
       </ErrorBoundary>
     );
@@ -478,7 +475,7 @@ export default function App() {
       <ErrorBoundary>
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="dark-content" />
-          <RVProfileForm onComplete={handleProfileComplete} />
+          <RVProfileScreen onComplete={handleProfileComplete} />
         </SafeAreaView>
       </ErrorBoundary>
     );
@@ -676,8 +673,5 @@ const styles = StyleSheet.create({
   resetLink: {
     fontSize: 14,
     color: '#999',
-  },
-  content: {
-    flex: 1,
   },
 });

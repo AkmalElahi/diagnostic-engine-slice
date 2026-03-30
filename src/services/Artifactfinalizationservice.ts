@@ -1,10 +1,10 @@
 
 import { MMKV } from 'react-native-mmkv';
-import { ArtifactFinalizer } from './ArtifactFinalizer';
-import { CanonicalSerializer } from './CanonicalSerializer';
-import { EnumValidator } from './EnumValidators';
-import { SessionPersistence } from './Sessionpersistence';
-import { SessionStateAdapter } from './Sessionstateadapter';
+import { ArtifactFinalizer } from '../utils/ArtifactFinalizer';
+import { CanonicalSerializer } from '../utils/CanonicalSerializer';
+import { EnumValidator } from '../validators/EnumValidators';
+import { SessionPersistence } from '../utils/Sessionpersistence';
+import { SessionStateAdapter } from '../utils/Sessionstateadapter';
 import {
   SessionState,
   TerminalNode,

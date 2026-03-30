@@ -1,4 +1,4 @@
-import { FlowChecksumValidator, ChecksumVerificationError } from '../utils/Flowchecksumvalidator';
+import { FlowChecksumValidator, ChecksumVerificationError } from '../validators/Flowchecksumvalidator';
 
 describe('FlowChecksumValidator', () => {
   const sampleFlowJson = JSON.stringify({
