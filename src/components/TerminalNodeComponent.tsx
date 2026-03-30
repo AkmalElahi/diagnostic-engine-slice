@@ -1,9 +1,15 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from 'react-native';
 import { TerminalNode, SessionSummary } from '../types';
 
 interface Props {
-  node: TerminalNode | null;  // null when session was stopped mid-flow
+  node: TerminalNode | null; // null when session was stopped mid-flow
   summary: SessionSummary | null;
   onStartNew: () => void;
   onViewHistory: () => void;
@@ -18,14 +24,15 @@ export const TerminalNodeComponent: React.FC<Props> = ({
   const isStopped = summary?.stopped ?? false;
 
   const resultText = node?.result ?? summary?.result ?? 'Diagnostic ended';
-  const title      = isStopped ? 'Diagnostic Stopped' : 'Diagnostic Complete';
-  const boxColor   = isStopped ? '#fff8e1' : '#e8f5e9';
+  const title = isStopped ? 'Diagnostic Stopped' : 'Diagnostic Complete';
+  const boxColor = isStopped ? '#fff8e1' : '#e8f5e9';
   const accentColor = isStopped ? '#FF9800' : '#4CAF50';
 
   const duration = summary
     ? Math.round(
         (new Date(summary.completed_at).getTime() -
-          new Date(summary.started_at).getTime()) / 1000
+          new Date(summary.started_at).getTime()) /
+          1000,
       )
     : null;
 
@@ -33,10 +40,16 @@ export const TerminalNodeComponent: React.FC<Props> = ({
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-
       {/* Result box */}
-      <View style={[styles.resultBox, { backgroundColor: boxColor, borderColor: accentColor }]}>
-        <Text style={[styles.completeTitle, { color: accentColor }]}>{title}</Text>
+      <View
+        style={[
+          styles.resultBox,
+          { backgroundColor: boxColor, borderColor: accentColor },
+        ]}
+      >
+        <Text style={[styles.completeTitle, { color: accentColor }]}>
+          {title}
+        </Text>
         <Text style={styles.resultText}>{resultText}</Text>
       </View>
 
@@ -52,7 +65,9 @@ export const TerminalNodeComponent: React.FC<Props> = ({
 
           <View style={styles.artifactRow}>
             <Text style={styles.artifactLabel}>Last Confirmed State</Text>
-            <Text style={styles.artifactValue}>{artifact.last_confirmed_state}</Text>
+            <Text style={styles.artifactValue}>
+              {artifact.last_confirmed_state}
+            </Text>
           </View>
 
           {Array.isArray(artifact.stabilization_actions) &&
@@ -60,7 +75,9 @@ export const TerminalNodeComponent: React.FC<Props> = ({
               <View style={styles.artifactRow}>
                 <Text style={styles.artifactLabel}>Stabilization Actions</Text>
                 {artifact.stabilization_actions.map((action, i) => (
-                  <Text key={i} style={styles.artifactListItem}>• {action}</Text>
+                  <Text key={i} style={styles.artifactListItem}>
+                    • {action}
+                  </Text>
                 ))}
               </View>
             )}
@@ -70,7 +87,9 @@ export const TerminalNodeComponent: React.FC<Props> = ({
               <View style={styles.artifactRow}>
                 <Text style={styles.artifactLabel}>Recommendations</Text>
                 {artifact.recommendations.map((rec, i) => (
-                  <Text key={i} style={styles.artifactListItem}>• {rec}</Text>
+                  <Text key={i} style={styles.artifactListItem}>
+                    • {rec}
+                  </Text>
                 ))}
               </View>
             )}
@@ -89,6 +108,15 @@ export const TerminalNodeComponent: React.FC<Props> = ({
           {duration !== null && (
             <Text style={styles.metaItem}>Duration: {duration}s</Text>
           )}
+          <Text style={styles.metaItem}>
+            Rig: {summary.rig_identity.substring(0, 8)}...
+          </Text>
+          <Text style={styles.metaItem}>
+            Creator: {summary.creator_name} ({summary.creator_type})
+          </Text>
+          <Text style={styles.metaItem}>
+            Created: {new Date(summary.date_time).toLocaleString()}
+          </Text>
         </View>
       )}
 
@@ -107,7 +135,6 @@ export const TerminalNodeComponent: React.FC<Props> = ({
           VIEW HISTORY
         </Text>
       </TouchableOpacity>
-
     </ScrollView>
   );
 };

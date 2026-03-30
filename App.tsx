@@ -9,46 +9,77 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-import { FlowEngine, FlowEngineError } from './src/utils/FlowEngine';
-import { FlowDefinition, MeasureNode, QuestionNode, SafetyNode, SessionState, SessionSummary, TerminalNode } from './src/types';
+import {
+  FlowEngine,
+  FlowEngineError,
+  FlowValidationError,
+  ChecksumVerificationError,
+} from './src/utils/FlowEngine';
+import { FlowChecksumStore } from './src/utils/Flowchecksumstore';
+import {
+  FlowDefinition,
+  MeasureNode,
+  QuestionNode,
+  SafetyNode,
+  SessionState,
+  SessionSummary,
+  TerminalNode,
+} from './src/types';
+
+import { HomeScreen } from './src/Screens/HomeScreen';
+
 import { QuestionNodeComponent } from './src/components/QuestionNodeComponent';
 import { SafetyNodeComponent } from './src/components/SafetyNodeComponent';
 import { MeasureNodeComponent } from './src/components/MeasureNodeComponent';
 import { TerminalNodeComponent } from './src/components/TerminalNodeComponent';
+import { EquipmentInventoryForm } from './src/components/EquipmentInventoryForm';
+
+import { RVProfileForm } from './src/components/RVProfileForm';
 import { HistoryView } from './src/components/HistoryView';
 import { FlowSelector } from './src/components/FlowSelector';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { StorageService } from './src/utils/StorageService';
-import { FlowValidationError } from './src/utils/FlowValidator';
 
 import no_power_issue from './src/flows/flow_1_no_power_inside_rv_v2.json';
 import water_system_issue from './src/flows/flow_2_water_system_issue_v2.json';
 import propane_system_issue from './src/flows/flow_3_propane_system_issue_v2.json';
 import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue_v2.json';
+import { RigIdentityService } from './src/utils/RigIdentityService';
+import { EquipmentService } from './src/utils/Equipmentservice';
+import { MaintenanceLogScreen } from './src/Screens/Maintenancelogscreen';
+import { MaintenanceService } from './src/utils/Maintenanceservice';
 
-type ViewMode = 'flow-select' | 'diagnostic' | 'history';
+type ViewMode =
+  | 'home'
+  | 'rv-profile'
+  | 'flow-select'
+  | 'diagnostic'
+  | 'history'
+  | 'equipment'
+  | 'maintenance';
 
 const AVAILABLE_FLOWS = [
   {
     flow: no_power_issue as FlowDefinition,
     name: 'No Power Inside RV',
-    description: 'Diagnose 12V and AC power issues in your RV electrical system.',
+    description:
+      'Diagnose 12V and AC power issues in your RV electrical system.',
   },
-  {
-    flow: water_system_issue as FlowDefinition,
-    name: 'Water System Issue',
-    description: 'Diagnose city water and fresh tank water system problems.',
-  },
-  {
-    flow: propane_system_issue as FlowDefinition,
-    name: 'Propane System Issue',
-    description: 'Diagnose propane supply, valves, and appliance issues.',
-  },
-  {
-    flow: slides_leveling_issue as FlowDefinition,
-    name: 'Slides and Leveling Systems',
-    description: 'Diagnose slide-out movement and leveling system issues.',
-  },
+  // {
+  //   flow: water_system_issue as FlowDefinition,
+  //   name: 'Water System Issue',
+  //   description: 'Diagnose city water and fresh tank water system problems.',
+  // },
+  // {
+  //   flow: propane_system_issue as FlowDefinition,
+  //   name: 'Propane System Issue',
+  //   description: 'Diagnose propane supply, valves, and appliance issues.',
+  // },
+  // {
+  //   flow: slides_leveling_issue as FlowDefinition,
+  //   name: 'Slides and Leveling Systems',
+  //   description: 'Diagnose slide-out movement and leveling system issues.',
+  // },
 ];
 
 const isIOS = Platform.OS === 'ios';
@@ -56,18 +87,28 @@ const isIOS = Platform.OS === 'ios';
 export default function App() {
   const [flowEngine, setFlowEngine] = useState<FlowEngine | null>(null);
   const [sessionState, setSessionState] = useState<SessionState | null>(null);
-  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(null);
+  const [sessionSummary, setSessionSummary] = useState<SessionSummary | null>(
+    null,
+  );
   const [viewMode, setViewMode] = useState<ViewMode>('flow-select');
   const [history, setHistory] = useState<SessionSummary[]>([]);
 
   useEffect(() => {
-    loadHistory();
-    restoreSession();
+    // Check if user has completed RV profile setup
+    const profileCompleted = StorageService.getProfileCompleted();
+
+    if (!profileCompleted) {
+      setViewMode('rv-profile');
+    } else {
+      setViewMode('home');
+      loadHistory();
+      restoreSession();
+    }
   }, []);
 
   // ─── Session restore ────────────────────────────────────────────────────────
 
-  const restoreSession = () => {
+  const restoreSession = async () => {
     const existing = StorageService.loadSessionState();
     if (!existing) return;
 
@@ -76,15 +117,34 @@ export default function App() {
 
     try {
       const matchingFlow = AVAILABLE_FLOWS.find(
-        f => f.flow.flowId === existing.flow_id
+        (f) => f.flow.flowId === existing.flow_id,
       );
       if (!matchingFlow) return;
 
-      const engine = new FlowEngine(matchingFlow.flow);
+      // Get checksum for verification
+      const expectedChecksum = FlowChecksumStore.getChecksum(
+        matchingFlow.flow.flowId,
+      );
+
+      let engine: FlowEngine;
+      if (expectedChecksum) {
+        engine = await FlowEngine.createWithChecksum(
+          matchingFlow.flow,
+          expectedChecksum,
+        );
+      } else {
+        console.warn(
+          'No checksum for flow during restore:',
+          matchingFlow.flow.flowId,
+        );
+        engine = FlowEngine.createUnsafe(matchingFlow.flow);
+      }
+
       setFlowEngine(engine);
       setSessionState(existing);
       setViewMode('diagnostic');
-    } catch {
+    } catch (err) {
+      console.error('Failed to restore session:', err);
       StorageService.clearSessionState();
     }
   };
@@ -95,15 +155,49 @@ export default function App() {
     setHistory(FlowEngine.getHistory());
   };
 
-  // ─── Flow selection ─────────────────────────────────────────────────────────
+  const handleProfileComplete = () => {
+    StorageService.setProfileCompleted(true);
+    loadHistory();
+    restoreSession();
+    setViewMode('home');
+  };
 
-  const handleSelectFlow = (flow: FlowDefinition) => {
+  // ─── Flow selection with checksum verification ──────────────────────────────
+
+  const handleSelectFlow = async (flow: FlowDefinition) => {
     try {
-      const engine = new FlowEngine(flow);
+      // Get expected checksum for this flow
+      const expectedChecksum = FlowChecksumStore.getChecksum(flow.flowId);
+
+      let engine: FlowEngine;
+
+      if (expectedChecksum) {
+        // Create engine with checksum verification
+        engine = await FlowEngine.createWithChecksum(flow, expectedChecksum);
+      } else {
+        // Checksum not available - warn and create anyway
+        console.warn(
+          '[MISSING_CHECKSUM]',
+          `No checksum found for flow ${flow.flowId}. Creating without verification.`,
+        );
+        engine = FlowEngine.createUnsafe(flow);
+      }
+
       setFlowEngine(engine);
       startNewSession(engine);
     } catch (err) {
-      if (err instanceof FlowValidationError) {
+      if (err instanceof ChecksumVerificationError) {
+        // Checksum verification failed - show detailed error
+        Alert.alert(
+          'Flow Integrity Error',
+          `The selected flow has been modified and cannot be executed.\n\n` +
+            `Flow: ${err.flow_id} v${err.flow_version}\n` +
+            `Expected: ${err.expected_hash.substring(0, 16)}...\n` +
+            `Computed: ${err.computed_hash.substring(0, 16)}...\n\n` +
+            `Please contact support.`,
+          [{ text: 'OK' }],
+        );
+      } else if (err instanceof FlowValidationError) {
         Alert.alert('Invalid Flow', err.message);
       } else if (err instanceof FlowEngineError) {
         Alert.alert('Engine Error', err.message);
@@ -130,28 +224,24 @@ export default function App() {
 
   // ─── Response handling ──────────────────────────────────────────────────────
 
-  const handleResponse = (value: string | number | boolean) => {
+  const handleResponse = async (value: string | number | boolean) => {
     if (!sessionState || !flowEngine) return;
 
     try {
-      const updated = flowEngine.processResponse(sessionState, value);
+      const updated = await flowEngine.processResponse(sessionState, value);
       setSessionState(updated);
 
       if (updated.completed) {
-        // Build summary from completed state — artifact is already on the state
-        const summary: SessionSummary = {
-          flow_id:          updated.flow_id,
-          flow_version:     updated.flow_version,
-          session_id:       updated.session_id,
-          started_at:       updated.started_at,
-          completed_at:     updated.completed_at!,
-          events:           updated.events,
-          terminal_node_id: updated.terminal_node_id!,
-          result:           updated.result!,
-          artifact:         updated.artifact,
-          stopped:          false,
-        };
-        setSessionSummary(summary);
+        // Load the most recent summary
+        const history = StorageService.getSessionHistory();
+        const latestSummary = history[history.length - 1];
+
+        if (latestSummary) {
+          setSessionSummary(latestSummary);
+        } else {
+          console.error('[handleResponse] Failed to load summary from storage');
+        }
+
         loadHistory();
       }
     } catch (err) {
@@ -180,31 +270,52 @@ export default function App() {
             try {
               const stoppedState = flowEngine.stopSession(sessionState);
               setSessionState(stoppedState);
+              const history = StorageService.getSessionHistory();
+              const latestSummary = history[history.length - 1];
 
-              const summary: SessionSummary = {
-                flow_id:          stoppedState.flow_id,
-                flow_version:     stoppedState.flow_version,
-                session_id:       stoppedState.session_id,
-                started_at:       stoppedState.started_at,
-                completed_at:     stoppedState.stopped_at!,
-                events:           stoppedState.events,
-                terminal_node_id: stoppedState.stop_node_id!,
-                result:           `Diagnostic stopped at: ${stoppedState.stop_node_id}`,
-                artifact:         stoppedState.partial_artifact,
-                stopped:          true,
-              };
-              setSessionSummary(summary);
+              if (latestSummary) {
+                setSessionSummary(latestSummary);
+              } else {
+                console.error(
+                  '[handleStop] Failed to load summary from storage',
+                );
+              }
+
               loadHistory();
             } catch (err) {
               Alert.alert('Error', 'Failed to stop session');
             }
           },
         },
-      ]
+      ],
     );
   };
 
   // ─── Navigation ─────────────────────────────────────────────────────────────
+
+  const showHome = () => {
+    setViewMode('home');
+  };
+
+  const showFlowSelect = () => {
+    setViewMode('flow-select');
+  };
+
+  const showEquipment = () => {
+    setViewMode('equipment');
+  };
+
+  const showMaintenance = () => {
+    setViewMode('maintenance');
+  };
+
+  const closeMaintenance = () => {
+    setViewMode(sessionState ? 'diagnostic' : 'home');
+  };
+
+  const closeEquipment = () => {
+    setViewMode(sessionState ? 'diagnostic' : 'home');
+  };
 
   const showHistory = () => {
     loadHistory();
@@ -212,7 +323,7 @@ export default function App() {
   };
 
   const closeHistory = () => {
-    setViewMode(sessionState ? 'diagnostic' : 'flow-select');
+    setViewMode(sessionState ? 'diagnostic' : 'home');
   };
 
   const clearHistory = () => {
@@ -229,7 +340,7 @@ export default function App() {
             loadHistory();
           },
         },
-      ]
+      ],
     );
   };
 
@@ -251,7 +362,7 @@ export default function App() {
             loadHistory();
           },
         },
-      ]
+      ],
     );
   };
 
@@ -262,37 +373,116 @@ export default function App() {
     if (sessionInProgress) {
       Alert.alert(
         'Session In Progress',
-        'Going back will stop the diagnostic and save a partial summary. Continue?',
+        'Going back will abort the diagnostic. Continue?',
         [
           { text: 'Cancel', style: 'cancel' },
           {
-            text: 'Stop & Go Back',
+            text: 'Abort & Go Back',
             style: 'destructive',
             onPress: () => {
-              // Save partial artifact before leaving
               if (flowEngine && sessionState) {
                 try {
-                  flowEngine.stopSession(sessionState);
-                } catch {}
+                  const rigIdentity = RigIdentityService.getOrCreate();
+
+                  const summary: SessionSummary = {
+                    flow_id: sessionState.flow_id,
+                    flow_version: sessionState.flow_version,
+                    session_id: sessionState.session_id,
+                    started_at: sessionState.started_at,
+                    completed_at: new Date().toISOString(),
+                    events: sessionState.events,
+                    terminal_node_id: sessionState.current_node_id || 'aborted',
+                    result: 'Diagnostic aborted by user',
+                    artifact: undefined, // No artifact for aborted sessions
+                    stopped: false, // This is an abort, not a stop
+
+                    // MS6 Contract Fields
+                    creator_name: rigIdentity.custom_name || 'Owner',
+                    creator_type: 'OWNER',
+                    date_time: new Date().toISOString(),
+                    rig_identity: rigIdentity.id,
+                  };
+
+                  // Save to history
+                  StorageService.saveSessionSummary(summary);
+                } catch (err) {
+                  console.error('Failed to save aborted session:', err);
+                }
               }
+
+              // Clear state
+              StorageService.clearSessionState();
               setFlowEngine(null);
               setSessionState(null);
               setSessionSummary(null);
-              setViewMode('flow-select');
+              setViewMode('home');
               loadHistory();
             },
           },
-        ]
+        ],
       );
     } else {
       setFlowEngine(null);
       setSessionState(null);
       setSessionSummary(null);
-      setViewMode('flow-select');
+      setViewMode('home');
     }
   };
 
   // ─── Render ─────────────────────────────────────────────────────────────────
+
+  if (viewMode === 'home') {
+    return (
+      <ErrorBoundary>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <HomeScreen
+            onRunDiagnostic={showFlowSelect}
+            onViewEquipment={showEquipment}
+            onViewHistory={showHistory}
+            onViewProfile={() => setViewMode('rv-profile')}
+            onViewMaintenance={showMaintenance}
+            historyCount={history.length}
+            equipmentCount={EquipmentService.getEquipmentCount()}
+            maintenanceCount={MaintenanceService.getMaintenanceCount()}
+          />
+        </SafeAreaView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (viewMode === 'equipment') {
+    return (
+      <ErrorBoundary>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <EquipmentInventoryForm onBack={closeEquipment} />
+        </SafeAreaView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (viewMode === 'maintenance') {
+    return (
+      <ErrorBoundary>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <MaintenanceLogScreen onBack={closeMaintenance} />
+        </SafeAreaView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (viewMode === 'rv-profile') {
+    return (
+      <ErrorBoundary>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <RVProfileForm onComplete={handleProfileComplete} />
+        </SafeAreaView>
+      </ErrorBoundary>
+    );
+  }
 
   if (viewMode === 'history') {
     return (
@@ -330,6 +520,10 @@ export default function App() {
   const currentNode = flowEngine.getCurrentNode(sessionState);
   const sessionInProgress = !sessionState.completed && !sessionState.stopped;
 
+  const totalSteps = sessionState.events.length + 1;
+  const progressPercentage = sessionInProgress
+    ? Math.min((totalSteps / 15) * 100, 95)
+    : 100;
   return (
     <ErrorBoundary>
       <SafeAreaView style={styles.container}>
@@ -339,22 +533,32 @@ export default function App() {
           <TouchableOpacity onPress={backToFlowSelect}>
             <Text style={styles.backButton}>Back</Text>
           </TouchableOpacity>
-          <Text style={styles.headerText}>
-            {sessionInProgress
-              ? `Step ${sessionState.events.length + 1}`
-              : sessionState.stopped
-              ? 'Stopped'
-              : 'Complete'}
-          </Text>
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBarBackground}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  {
+                    width: `${progressPercentage}%`,
+                    backgroundColor: sessionState.stopped
+                      ? '#ff9800'
+                      : sessionState.completed
+                        ? '#4caf50'
+                        : '#2196F3',
+                  },
+                ]}
+              />
+            </View>
+          </View>
           <View style={styles.headerActions}>
             {sessionInProgress && (
               <TouchableOpacity onPress={handleStop} style={styles.stopButton}>
                 <Text style={styles.stopButtonText}>Stop</Text>
               </TouchableOpacity>
             )}
-            <TouchableOpacity onPress={resetApp}>
+            {/* <TouchableOpacity onPress={resetApp}>
               <Text style={styles.resetLink}>Reset</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
 
@@ -384,7 +588,11 @@ export default function App() {
             sessionState.completed ||
             sessionState.stopped) && (
             <TerminalNodeComponent
-              node={currentNode.type === 'TERMINAL' ? currentNode as unknown as TerminalNode : null}
+              node={
+                currentNode.type === 'TERMINAL'
+                  ? (currentNode as unknown as TerminalNode)
+                  : null
+              }
               summary={sessionSummary}
               onStartNew={() => startNewSession()}
               onViewHistory={showHistory}
@@ -401,6 +609,33 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: isIOS ? 0 : 30,
     backgroundColor: '#fff',
+  },
+  progressContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 12,
+  },
+  progressBarBackground: {
+    width: '100%',
+    height: 6,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
+  },
+
+  content: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

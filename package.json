@@ -4,19 +4,27 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
+    "test": "jest",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web"
   },
   "dependencies": {
+    "crypto": "^1.0.1",
     "expo": "~54.0.30",
+    "expo-crypto": "~15.0.8",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
     "react-native": "0.81.5",
-    "react-native-mmkv": "^4.1.0"
+    "react-native-mmkv": "^4.1.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.3.5",
     "@types/react": "~19.1.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "typescript": "~5.9.2"
   },
   "private": true

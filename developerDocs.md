@@ -47,9 +47,9 @@ The engine is **immutable infrastructure**. All diagnostic content lives in flow
 | `flowVersion` | string | ✓ | Semantic version string |
 | `title` | string | ✓ | Human-readable flow name |
 | `startNode` | string | ✓ | Must reference an existing node ID |
-| `nodes` | object | ✓ | **MUST be object/dict** keyed by node ID. Array format is rejected. |
+| `nodes` | object | ✓ | **MUST be object/dict keyed by node ID. Array format is NOT supported.** |
 
-**CRITICAL:** The `nodes` field must be an object (dictionary) where keys are node IDs and values are node objects. The validator will reject array format with this error:
+**CRITICAL:** The `nodes` field must be an object (dictionary) where keys are node IDs and values are node objects. The validator **rejects array format** with this error:
 
 ```
 Flow "nodes" must be an object (dictionary) keyed by node ID.
@@ -124,12 +124,13 @@ Every TERMINAL node must produce an artifact. The engine also synthesises a part
 
 | Field | Type | Description |
 |---|---|---|
+| `artifact_schema_version` | string | Must be `"1.0"` |
 | `flow_id` | string | Must match the flow's `flowId` |
 | `flow_version` | string | Must match the flow's `flowVersion` |
 | `issue` | string | The flow title (e.g. "No Power Inside RV") |
 | `stop_reason` | string | Why this terminal was reached |
 | `last_confirmed_state` | string | Last known system state before terminal |
-| `safety_notes` | string | Safety observations (empty string if none) |
+| `safety_notes` | string[] | Safety observations (empty string[] if none) |
 
 ### 3.2 Optional Common Fields (validated for type when present)
 
@@ -191,12 +192,13 @@ A `SessionSummary` with `stopped: true` and a partial artifact where:
 
 ```json
 {
+  "artifact_schema_version": "1.0",
   "flow_id": "flow_1_no_power_inside_rv",
   "flow_version": "2.0",
   "issue": "No Power Inside RV",
   "stop_reason": "User stopped diagnostic at node: battery_connection_observation",
   "last_confirmed_state": "Last answered: voltage_access_check = yes. Stopped at: battery_connection_observation.",
-  "safety_notes": "",
+  "safety_notes": [""],
   "power_source_context": "shore_power",
   "voltage_known": "yes",
   "voltage_value": "12.1",
@@ -292,8 +294,8 @@ interface SessionEvent {
 | Rule | Detail |
 |---|---|
 | `flowId`, `flowVersion`, `startNode` present | Must be non-empty strings |
-| `nodes` is dict or array | Array nodes must each have an `"id"` field |
-| `startNode` references existing node | Validated against resolved node dict |
+| `nodes` is object/dict only | Array format is rejected by validator |
+| `startNode` references existing node | Validated against node dict |
 | All node types are valid | Only QUESTION / SAFETY / MEASURE / TERMINAL allowed |
 | QUESTION `answers` non-empty object | All values must reference existing nodes |
 | SAFETY uses `"next"` not `"nextNode"` | Validator throws with explicit message if wrong |
@@ -302,7 +304,8 @@ interface SessionEvent {
 | All nodes reachable from `startNode` | Full graph traversal, unreachable nodes throw |
 | At least one TERMINAL node | Flow must have an exit point |
 | TERMINAL has `result` string | Required |
-| TERMINAL has `artifact` object | Required with 6 universal fields as strings |
+| TERMINAL has `artifact` object | Required with universal fields as strings |
+| `artifact_schema_version` must be `"1.0"` | Enforced in all artifacts |
 | Optional artifact fields correct type | When present: arrays must be string[], notes must be string |
 
 ---
@@ -321,6 +324,7 @@ interface SessionEvent {
 - Add diagnostic logic, question text, or routing to the engine
 - Hard-code `"yes"` / `"no"` as the only valid answer values
 - Skip calling `stopSession()` when user exits — always capture state
+- Use array format for nodes field
 
 ### Safe Modification Boundary
 
@@ -340,7 +344,9 @@ StorageService.ts (interface)       FlowSelector (flow list)
 1. Author the flow following the canonical writing pack process
 2. Ensure all terminal nodes include the full artifact contract (Section 3.1)
 3. Use `"next"` on all SAFETY nodes
-4. Pass the raw JSON to `new FlowEngine(rawJson)` — validation will catch any issues
-5. Register the flow in the `FlowSelector` component
+4. Ensure `artifact_schema_version` is `"1.0"` in all terminal artifacts
+5. Use **object/dict format only** for nodes field - array format is not supported
+6. Pass the raw JSON to `new FlowEngine(rawJson)` — validation will catch any issues
+7. Register the flow in the `FlowSelector` component
 
 **No engine or validator changes are required to add a new flow.**

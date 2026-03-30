@@ -1,0 +1,9 @@
+{
+  "artifact_enums_version": "1.1",
+  "notes": "Allowed values for enum-like fields. Free text fields are excluded. Unknown is allowed where applicable.",
+  "fields": {
+    "vertical_id": [
+      "RV"
+    ]
+  }
+}

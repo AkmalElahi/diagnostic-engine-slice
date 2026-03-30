@@ -1,11 +1,13 @@
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { FlowChecksumValidator, ChecksumVerificationError } from './Flowchecksumvalidator';
+import { EnumValidator } from './EnumValidators';
+
 
 export interface RawFlow {
   flowId: string;
   flowVersion: string;
   startNode: string;
   title?: string;
-  nodes: Record<string, RawFlowNode>;  // MUST be object, array format is rejected
+  nodes: Record<string, RawFlowNode>;
 }
 
 export interface RawFlowNode {
@@ -26,7 +28,7 @@ export interface SafetyNode extends RawFlowNode {
 }
 
 export interface MeasureBranch {
-  condition: string; // e.g. "< 11.8" or ">= 11.8"
+  condition: string;
   next: string;
 }
 
@@ -39,18 +41,17 @@ export interface MeasureNode extends RawFlowNode {
 }
 
 export interface FlowArtifact {
-  // Universal required fields
+  vertical_id: string;
   flow_id: string;
   flow_version: string;
+  artifact_schema_version: string;
   issue: string;
   stop_reason: string;
   last_confirmed_state: string;
   safety_notes: string[];
-  // Optional common fields
   stabilization_actions?: string[];
   recommendations?: string[];
   notes?: string;
-  // Flow-specific fields
   [key: string]: unknown;
 }
 
@@ -60,7 +61,7 @@ export interface TerminalNode extends RawFlowNode {
   artifact: FlowArtifact;
 }
 
-// ─── Error ────────────────────────────────────────────────────────────────────
+// ─── Errors ───────────────────────────────────────────────────────────────────
 
 export class FlowValidationError extends Error {
   constructor(message: string) {
@@ -69,38 +70,44 @@ export class FlowValidationError extends Error {
   }
 }
 
-// ─── Condition evaluator ──────────────────────────────────────────────────────
-
-/**
- * Supported operators: <  <=  >  >=  ==  !=
- * Example: evaluateCondition("< 11.8", 11.2) → true
- */
-export function evaluateCondition(condition: string, value: number): boolean {
-  const match = condition.trim().match(/^([<>!=]=?)\s*([\d.]+)$/);
-  if (!match) {
-    throw new FlowValidationError(
-      `Invalid condition expression: "${condition}". ` +
-      `Supported operators: <, <=, >, >=, ==, !=`
+export class EnumValidationError extends FlowValidationError {
+  constructor(
+    public readonly field: string,
+    public readonly value: unknown,
+    public readonly allowedValues: string[]
+  ) {
+    super(
+      `Invalid enum value for field "${field}": "${value}". ` +
+      `Allowed values: ${allowedValues.join(', ')}`
     );
-  }
-  const operator = match[1];
-  const threshold = parseFloat(match[2]);
-  switch (operator) {
-    case '<':  return value <  threshold;
-    case '<=': return value <= threshold;
-    case '>':  return value >  threshold;
-    case '>=': return value >= threshold;
-    case '==': return value === threshold;
-    case '!=': return value !== threshold;
-    default:
-      throw new FlowValidationError(`Unknown operator: "${operator}"`);
+    this.name = 'EnumValidationError';
   }
 }
 
-/**
- * Evaluates branches in order and returns the first matching node ID.
- * Returns null if no branch matches.
- */
+// ─── Exports ──────────────────────────────────────────────────────────────────
+
+export { ChecksumVerificationError };
+
+// ─── Condition evaluator ──────────────────────────────────────────────────────
+
+export function evaluateCondition(condition: string, value: number): boolean {
+  const match = condition.trim().match(/^([<>!=]=?)\s*([\d.]+)$/);
+  if (!match) {
+    throw new Error(`Invalid condition syntax: "${condition}"`);
+  }
+  const op = match[1];
+  const threshold = parseFloat(match[2]);
+  switch (op) {
+    case '<':  return value < threshold;
+    case '<=': return value <= threshold;
+    case '>':  return value > threshold;
+    case '>=': return value >= threshold;
+    case '==': return value === threshold;
+    case '!=': return value !== threshold;
+    default:   throw new Error(`Unsupported operator: "${op}"`);
+  }
+}
+
 export function resolveMeasureBranch(
   branches: MeasureBranch[],
   value: number
@@ -113,15 +120,66 @@ export function resolveMeasureBranch(
   return null;
 }
 
-// ─── Validator ────────────────────────────────────────────────────────────────
-
 export class FlowValidator {
+  // Track registered flow IDs for uniqueness validation
+  private static registeredFlowIds = new Set<string>();
+  static async validate(raw: RawFlow, expectedChecksum?: string): Promise<void> {
+    // Step 1: Checksum verification (if provided)
+    if (expectedChecksum) {
+      const flowJsonString = JSON.stringify(raw);
+      await FlowChecksumValidator.verifyChecksumOrThrow(
+        flowJsonString,
+        expectedChecksum,
+        raw.flowId,
+        raw.flowVersion
+      );
+    }
 
-  static validate(raw: RawFlow): void {
+    // Step 2: Schema validation
     this.validateTopLevel(raw);
+    this.validateFlowIdUniqueness(raw.flowId);
     this.validateNodes(raw.nodes);
     this.validateReachability(raw.startNode, raw.nodes);
     this.validateHasTerminal(raw.nodes);
+
+    // Step 3: Enum validation for terminal nodes
+    this.validateTerminalEnums(raw.nodes);
+
+    // Register flow ID as validated
+    this.registeredFlowIds.add(raw.flowId);
+  }
+
+  /**
+   * Validate flow without checksum verification (for backward compatibility)
+   * 
+   * @param raw - Flow definition object
+   */
+  static validateSync(raw: RawFlow): void {
+    this.validateTopLevel(raw);
+    this.validateFlowIdUniqueness(raw.flowId);
+    this.validateNodes(raw.nodes);
+    this.validateReachability(raw.startNode, raw.nodes);
+    this.validateHasTerminal(raw.nodes);
+    this.validateTerminalEnums(raw.nodes);
+    this.registeredFlowIds.add(raw.flowId);
+  }
+
+  /**
+   * Clear registered flow IDs (for testing)
+   */
+  static clearRegistry(): void {
+    this.registeredFlowIds.clear();
+  }
+
+  // ── Flow ID uniqueness ─────────────────────────────────────────────────────
+
+  private static validateFlowIdUniqueness(flowId: string): void {
+    if (this.registeredFlowIds.has(flowId)) {
+      throw new FlowValidationError(
+        `Duplicate flow ID detected: "${flowId}". ` +
+        `Each flow must have a unique flowId.`
+      );
+    }
   }
 
   // ── Top-level ──────────────────────────────────────────────────────────────
@@ -275,7 +333,7 @@ export class FlowValidator {
     }
     if (!Array.isArray(node.branches) || node.branches.length === 0) {
       throw new FlowValidationError(
-        `MEASURE node "${nodeId}" "branches" must be a non-empty array of {condition, next} objects`
+        `MEASURE node "${nodeId}" "branches" must be a non-empty array`
       );
     }
     for (let i = 0; i < node.branches.length; i++) {
@@ -295,13 +353,6 @@ export class FlowValidator {
           `MEASURE node "${nodeId}" branch[${i}] "next" references non-existent node "${branch.next}"`
         );
       }
-      try {
-        evaluateCondition(branch.condition, 0);
-      } catch {
-        throw new FlowValidationError(
-          `MEASURE node "${nodeId}" branch[${i}] has invalid condition: "${branch.condition}"`
-        );
-      }
     }
   }
 
@@ -311,60 +362,63 @@ export class FlowValidator {
     if (!node.result || typeof node.result !== 'string') {
       throw new FlowValidationError(`TERMINAL node "${nodeId}" must have a string "result"`);
     }
-    if (!node.artifact || typeof node.artifact !== 'object' || Array.isArray(node.artifact)) {
+    if (!node.artifact || typeof node.artifact !== 'object') {
       throw new FlowValidationError(`TERMINAL node "${nodeId}" must have an "artifact" object`);
     }
-    this.validateArtifact(nodeId, node.artifact);
-  }
 
-  private static validateArtifact(nodeId: string, artifact: FlowArtifact): void {
-    const required: (keyof FlowArtifact)[] = [
-      'flow_id', 'flow_version', 'issue', 'stop_reason', 'last_confirmed_state', 'safety_notes',
+    const artifact = node.artifact;
+
+    // Validate required base fields
+    const requiredStringFields = [
+      'issue',
+      'flow_id',
+      'flow_version',
+      'artifact_schema_version',
+      'stop_reason',
+      'last_confirmed_state',
     ];
-    for (const field of required) {
-      if (artifact[field] === undefined || artifact[field] === null) {
+
+    for (const field of requiredStringFields) {
+      if (!(field in artifact)) {
         throw new FlowValidationError(
           `TERMINAL node "${nodeId}" artifact missing required field "${field}"`
         );
       }
-      if (typeof artifact[field] !== 'string') {
-        throw new FlowValidationError(
-          `TERMINAL node "${nodeId}" artifact field "${field}" must be a string`
-        );
-      }
     }
-    if (artifact.stabilization_actions !== undefined) {
-      if (!Array.isArray(artifact.stabilization_actions)) {
-        throw new FlowValidationError(
-          `TERMINAL node "${nodeId}" artifact "stabilization_actions" must be an array when present`
-        );
-      }
-      for (const item of artifact.stabilization_actions) {
-        if (typeof item !== 'string') {
-          throw new FlowValidationError(
-            `TERMINAL node "${nodeId}" artifact "stabilization_actions" must contain only strings`
-          );
-        }
-      }
-    }
-    if (artifact.recommendations !== undefined) {
-      if (!Array.isArray(artifact.recommendations)) {
-        throw new FlowValidationError(
-          `TERMINAL node "${nodeId}" artifact "recommendations" must be an array when present`
-        );
-      }
-      for (const item of artifact.recommendations) {
-        if (typeof item !== 'string') {
-          throw new FlowValidationError(
-            `TERMINAL node "${nodeId}" artifact "recommendations" must contain only strings`
-          );
-        }
-      }
-    }
-    if (artifact.notes !== undefined && typeof artifact.notes !== 'string') {
+
+    // Validate safety_notes array
+    if (!Array.isArray(artifact.safety_notes)) {
       throw new FlowValidationError(
-        `TERMINAL node "${nodeId}" artifact "notes" must be a string when present`
+        `TERMINAL node "${nodeId}" artifact "safety_notes" must be an array`
       );
+    }
+  }
+
+  // ── MS 5.7: Enum validation ────────────────────────────────────────────────
+
+  /**
+   * Validate enum fields in terminal artifacts using EnumValidator
+   */
+  private static validateTerminalEnums(nodes: Record<string, RawFlowNode>): void {
+    for (const [nodeId, node] of Object.entries(nodes)) {
+      if (node.type === 'TERMINAL') {
+        const terminalNode = node as TerminalNode;
+        const artifact = terminalNode.artifact;
+
+        // Validate vertical_id if present
+        if ('vertical_id' in artifact && artifact.vertical_id) {
+          const result = EnumValidator.validate('vertical_id', artifact.vertical_id);
+          if (!result.is_valid) {
+            const allowedValues = EnumValidator.getAllowedValues('vertical_id') || [];
+            throw new EnumValidationError(
+              'vertical_id',
+              artifact.vertical_id,
+              allowedValues
+            );
+          }
+        }
+        // Additional enum fields can be validated here as needed
+      }
     }
   }
 
@@ -375,37 +429,61 @@ export class FlowValidator {
     nodes: Record<string, RawFlowNode>
   ): void {
     const visited = new Set<string>();
-    const queue = [startNode];
+    const queue: string[] = [startNode];
+
     while (queue.length > 0) {
-      const nodeId = queue.shift()!;
-      if (visited.has(nodeId)) continue;
-      visited.add(nodeId);
-      const node = nodes[nodeId];
-      if (!node) continue;
-      switch (node.type) {
-        case 'QUESTION':
-          queue.push(...Object.values((node as QuestionNode).answers));
-          break;
-        case 'SAFETY':
-          queue.push((node as SafetyNode).next);
-          break;
-        case 'MEASURE':
-          queue.push(...(node as MeasureNode).branches.map(b => b.next));
-          break;
+      const current = queue.shift()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+
+      const node = nodes[current];
+      const nextNodes = this.getNextNodes(node);
+      for (const next of nextNodes) {
+        if (!visited.has(next)) {
+          queue.push(next);
+        }
       }
     }
-    const unreachable = Object.keys(nodes).filter(id => !visited.has(id));
+
+    const allNodeIds = Object.keys(nodes);
+    const unreachable = allNodeIds.filter(id => !visited.has(id));
+    
     if (unreachable.length > 0) {
       throw new FlowValidationError(
-        `Unreachable nodes detected: ${unreachable.join(', ')}`
+        `Unreachable nodes detected: ${unreachable.join(', ')}. ` +
+        `All nodes must be reachable from startNode "${startNode}"`
       );
     }
   }
 
-  // ── At least one terminal ──────────────────────────────────────────────────
+  private static getNextNodes(node: RawFlowNode): string[] {
+    switch (node.type) {
+      case 'QUESTION': {
+        const q = node as QuestionNode;
+        return Object.values(q.answers);
+      }
+      case 'SAFETY': {
+        const s = node as SafetyNode;
+        return [s.next];
+      }
+      case 'MEASURE': {
+        const m = node as MeasureNode;
+        return m.branches.map(b => b.next);
+      }
+      case 'TERMINAL': {
+        return [];
+      }
+      default: {
+        return [];
+      }
+    }
+  }
+
+  // ── Has terminal ───────────────────────────────────────────────────────────
 
   private static validateHasTerminal(nodes: Record<string, RawFlowNode>): void {
-    if (!Object.values(nodes).some(n => n.type === 'TERMINAL')) {
+    const hasTerminal = Object.values(nodes).some(node => node.type === 'TERMINAL');
+    if (!hasTerminal) {
       throw new FlowValidationError('Flow must have at least one TERMINAL node');
     }
   }

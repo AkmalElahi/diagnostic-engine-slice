@@ -34,6 +34,7 @@ export interface FlowArtifact {
   // Universal required fields (all flows, all terminals)
   flow_id: string;
   flow_version: string;
+  vertical_id?: string;
   issue: string;
   stop_reason: string;
   last_confirmed_state: string;
@@ -82,6 +83,12 @@ export interface SessionState {
   events: SessionEvent[];
   completed: boolean;
   stopped: boolean;
+  artifact_id: string;
+  stop_reason: string;
+  executed_nodes: ExecutedNode[];
+  last_confirmed_state: string;
+  answers: Record<string, any>;
+  measurements: Record<string, number | null>;
 
   // Set on normal completion
   completed_at?: string;
@@ -104,6 +111,236 @@ export interface SessionSummary {
   events: SessionEvent[];
   terminal_node_id: string;
   result: string;
-  artifact?: FlowArtifact;  // present on both completion and stop
+  artifact?: FlowArtifact;
   stopped: boolean;
+
+  creator_name: string;
+  creator_type: 'OWNER';
+  date_time: string;
+  rig_identity: string;
 }
+
+export interface CanonicalSerializationResult {
+  canonical_json: string;
+  sha256_hash: string;
+  artifact_hash?: string;
+}
+export interface DeterminismValidationResult {
+  is_valid: boolean;
+  stored_hash: string;
+  exported_hash: string;
+  error_message?: string;
+}
+export interface SerializationOptions {
+  field_order: string[];
+  compute_artifact_hash?: boolean;
+}
+export class SerializationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SerializationError';
+  }
+}
+
+export class DeterminismError extends Error {
+  constructor(
+    message: string,
+    public stored_hash: string,
+    public exported_hash: string,
+  ) {
+    super(message);
+    this.name = 'DeterminismError';
+  }
+}
+
+export interface ArtifactSessionState {
+  artifact_id: string;
+  flow_id: string;
+  flow_version: string;
+  executed_nodes: ExecutedNode[];
+  answers: Record<string, any>;
+  measurements: Record<string, number | null>;
+  stop_reason: string;
+  last_confirmed_state: string;
+}
+
+export interface ExecutedNode {
+  node_id: string;
+  node_type: string;
+  executed_at: string;
+  value?: any;
+}
+export interface TerminalArtifactTemplate {
+  vertical_id?: string;
+  issue: string;
+  [key: string]: any;
+  safety_notes: string[];
+  stabilization_actions?: string[];
+  recommendations?: string[];
+  notes?: string;
+}
+export interface FieldMapping {
+  artifact_field: string;
+  source_node_id: string;
+  field_type: 'string' | 'number' | 'enum' | 'array';
+}
+export interface FinalizationResult {
+  final_artifact: Record<string, any>;
+  canonical_json: string;
+  sha256_hash: string;
+  warnings: string[];
+}
+
+export interface ArtifactFinalizationResult {
+  finalization_result: FinalizationResult;
+  artifact_id: string;
+  flow_id: string;
+  flow_version: string;
+  session_id: string;
+  finalized_at: string;
+}
+
+export class FinalizationError extends Error {
+  constructor(
+    message: string,
+    public validation_errors: string[],
+  ) {
+    super(message);
+    this.name = 'FinalizationError';
+  }
+}
+
+export interface RigIdentity {
+  id: string;
+  custom_name?: string;
+  make?: string;
+  model?: string;
+  year?: number;
+  vin?: string;
+  created_at: string;
+}
+
+export interface EquipmentItem {
+  id: string;
+  rig_id: string;
+  category: string;
+  name: string;
+  manufacturer?: string;
+  model_number?: string;
+  serial_number?: string;
+  installation_date?: string;
+  warranty_expiration?: string;
+  notes?: string;
+  created_at: string;
+}
+ 
+export const EQUIPMENT_CATEGORIES = [
+  'Appliance',
+  'Electrical',
+  'Plumbing',
+  'HVAC',
+  'Safety',
+  'Leveling',
+  'Slide-Out',
+  'Propane',
+  'Water',
+  'Entertainment',
+  'Other',
+] as const;
+ 
+export type EquipmentCategory = typeof EQUIPMENT_CATEGORIES[number];
+ 
+/**
+ * Enum validation error with details
+ */
+export class EnumValidationError extends Error {
+  constructor(
+    message: string,
+    public field: string,
+    public value: string,
+    public allowed_values: string[],
+  ) {
+    super(message);
+    this.name = 'EnumValidationError';
+  }
+}
+
+/**
+ * Enum validation result
+ */
+export interface EnumValidationResult {
+  is_valid: boolean;
+  normalized_value?: string;
+  error_message?: string;
+  allowed_values?: string[];
+}
+
+export type MaintenanceType = 'REPAIR' | 'UPGRADE' | 'PREVENTATIVE' | 'INSTALLATION';
+export interface MaintenanceArtifact {
+  maintenance_artifact_schema_version: '1.0';
+  creator_name: string;
+  creator_type: 'OWNER' | 'TECHNICIAN';
+  date_time: string;
+  rig_identity: string;
+  maintenance_date: string;
+  maintenance_type: MaintenanceType;
+  component_type: string;
+  description: string;
+  performed_by?: string;
+  part_number?: string;
+  equipment_id?: string;
+}
+export interface MaintenanceEntry {
+  id: string;
+  rig_id: string;
+  created_at: string;
+  artifact: MaintenanceArtifact;
+}
+
+export const MAINTENANCE_TYPES: readonly MaintenanceType[] = [
+  'REPAIR',
+  'UPGRADE',
+  'PREVENTATIVE',
+  'INSTALLATION',
+] as const;
+
+/**
+ * Helper to get display name for maintenance type
+ */
+export function getMaintenanceTypeLabel(type: MaintenanceType): string {
+  const labels: Record<MaintenanceType, string> = {
+    REPAIR: 'Repair',
+    UPGRADE: 'Upgrade',
+    PREVENTATIVE: 'Preventative Maintenance',
+    INSTALLATION: 'Installation',
+  };
+  return labels[type];
+}
+
+export const DEFAULT_STRINGS = {
+  STABILIZATION_ACTION:
+    'Avoid further operation until evaluated by a technician.',
+  RECOMMENDATION:
+    'Schedule a technician and share this artifact so they can triage the issue quickly.',
+} as const;
+
+export const REQUIRED_BASE_FIELDS = [
+  'artifact_id',
+  'artifact_hash',
+  'vertical_id',
+  'issue',
+  'flow_id',
+  'flow_version',
+  'artifact_schema_version',
+  'stop_reason',
+  'last_confirmed_state',
+] as const;
+
+export const REQUIRED_SUFFIX_FIELDS = [
+  'safety_notes',
+  'stabilization_actions',
+  'recommendations',
+  'notes',
+] as const;
+
+
