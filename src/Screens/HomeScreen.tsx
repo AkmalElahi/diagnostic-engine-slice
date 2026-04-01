@@ -13,9 +13,11 @@ interface Props {
   onViewHistory: () => void;
   onViewProfile: () => void;
   onViewMaintenance: () => void;
+  onViewArtifacts: () => void;
   historyCount: number;
   equipmentCount: number;
   maintenanceCount: number;
+  artifactCount: number;
 }
 
 export const HomeScreen: React.FC<Props> = ({
@@ -24,9 +26,11 @@ export const HomeScreen: React.FC<Props> = ({
   onViewHistory,
   onViewProfile,
   onViewMaintenance,
+  onViewArtifacts,
   historyCount,
   equipmentCount,
   maintenanceCount,
+  artifactCount,
 }) => {
   return (
     <SafeAreaView style={styles.container}>
@@ -63,6 +67,15 @@ export const HomeScreen: React.FC<Props> = ({
               <Text style={styles.menuTitle}>Maintenance Log</Text>
               <Text style={styles.menuDescription}>
                 {maintenanceCount} entries
+              </Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.menuItem} onPress={onViewArtifacts}>
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuTitle}>Artifact History</Text>
+              <Text style={styles.menuDescription}>
+                {artifactCount} artifacts
               </Text>
             </View>
             <Text style={styles.chevron}>›</Text>

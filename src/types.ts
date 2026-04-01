@@ -69,8 +69,10 @@ export interface FlowDefinition {
 
 export interface SessionEvent {
   node_id: string;
+  node_text: string;
   type: NodeType;
   value: string | number | boolean;
+  result_text: string;
   timestamp: string;
 }
 

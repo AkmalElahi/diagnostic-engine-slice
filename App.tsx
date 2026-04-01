@@ -25,7 +25,12 @@ import water_system_issue from './src/flows/flow_2_water_system_issue_v2.json';
 import propane_system_issue from './src/flows/flow_3_propane_system_issue_v2.json';
 import slides_leveling_issue from './src/flows/flow_4_slides_leveling_issue_v2.json';
 
-import { FlowEngine, FlowEngineError, FlowValidationError, ChecksumVerificationError } from './src/utils/FlowEngine';
+import {
+  FlowEngine,
+  FlowEngineError,
+  FlowValidationError,
+  ChecksumVerificationError,
+} from './src/utils/FlowEngine';
 import { FlowChecksumStore } from './src/utils/Flowchecksumstore';
 
 import { RigIdentityService } from './src/services/RigIdentityService';
@@ -37,6 +42,7 @@ import { HomeScreen } from './src/Screens/HomeScreen';
 import { EquipmentInventoryScreen } from './src/Screens/EquipmentInventoryScreen';
 import { RVProfileScreen } from './src/Screens/RVProfileScreen';
 import { MaintenanceLogScreen } from './src/Screens/Maintenancelogscreen';
+import { ArtifactHistoryScreen } from './src/Screens/Artifacthistoryscreen';
 
 import { QuestionNodeComponent } from './src/components/QuestionNodeComponent';
 import { SafetyNodeComponent } from './src/components/SafetyNodeComponent';
@@ -53,7 +59,8 @@ type ViewMode =
   | 'diagnostic'
   | 'history'
   | 'equipment'
-  | 'maintenance';
+  | 'maintenance'
+  | 'artifacts';
 
 const AVAILABLE_FLOWS = [
   {
@@ -323,6 +330,14 @@ export default function App() {
     setViewMode(sessionState ? 'diagnostic' : 'home');
   };
 
+  const showArtifacts = () => {
+    setViewMode('artifacts');
+  };
+
+  const closeArtifacts = () => {
+    setViewMode(sessionState ? 'diagnostic' : 'home');
+  };
+
   const clearHistory = () => {
     Alert.alert(
       'Clear History',
@@ -361,6 +376,11 @@ export default function App() {
         },
       ],
     );
+  };
+
+  const getArtifactCount = (): number => {
+    const history = StorageService.getSessionHistory();
+    return history.filter((session) => session.artifact !== undefined).length;
   };
 
   const backToFlowSelect = () => {
@@ -439,7 +459,9 @@ export default function App() {
             onViewHistory={showHistory}
             onViewProfile={() => setViewMode('rv-profile')}
             onViewMaintenance={showMaintenance}
+            onViewArtifacts={showArtifacts}
             historyCount={history.length}
+            artifactCount={getArtifactCount()}
             equipmentCount={EquipmentService.getEquipmentCount()}
             maintenanceCount={MaintenanceService.getMaintenanceCount()}
           />
@@ -465,6 +487,17 @@ export default function App() {
         <SafeAreaView style={styles.container}>
           <StatusBar barStyle="dark-content" />
           <MaintenanceLogScreen onBack={closeMaintenance} />
+        </SafeAreaView>
+      </ErrorBoundary>
+    );
+  }
+
+  if (viewMode === 'artifacts') {
+    return (
+      <ErrorBoundary>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <ArtifactHistoryScreen onBack={closeArtifacts} />
         </SafeAreaView>
       </ErrorBoundary>
     );

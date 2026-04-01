@@ -23,10 +23,36 @@ export const TerminalNodeComponent: React.FC<Props> = ({
 }) => {
   const isStopped = summary?.stopped ?? false;
 
+  // Stop state check
+  const isStopCondition =
+    node?.result?.toLowerCase().includes('stop') ||
+    node?.result?.toLowerCase().includes('do not continue');
+
   const resultText = node?.result ?? summary?.result ?? 'Diagnostic ended';
-  const title = isStopped ? 'Diagnostic Stopped' : 'Diagnostic Complete';
-  const boxColor = isStopped ? '#fff8e1' : '#e8f5e9';
-  const accentColor = isStopped ? '#FF9800' : '#4CAF50';
+
+  // Title and styling
+  let title: string;
+  let boxColor: string;
+  let accentColor: string;
+  let displayMessage: string;
+
+  if (isStopCondition) {
+    title = 'Stop';
+    boxColor = '#fff3f3';
+    accentColor = '#f44336';
+    displayMessage =
+      'Do not continue. This condition may indicate a problem that requires attention.';
+  } else if (isStopped) {
+    title = 'Diagnostic Stopped';
+    boxColor = '#fff8e1';
+    accentColor = '#FF9800';
+    displayMessage = resultText;
+  } else {
+    title = 'Diagnostic Complete';
+    boxColor = '#e8f5e9';
+    accentColor = '#4CAF50';
+    displayMessage = resultText;
+  }
 
   const duration = summary
     ? Math.round(
@@ -38,9 +64,18 @@ export const TerminalNodeComponent: React.FC<Props> = ({
 
   const artifact = summary?.artifact;
 
+  // Determine status for artifact display
+  const getStatus = (): string => {
+    if (isStopped) return 'Stopped';
+    if (summary?.completed_at) return 'Complete';
+    return 'Partial';
+  };
+
+  const status = getStatus();
+  const statusColor = isStopped ? '#FF9800' : '#4CAF50';
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Result box */}
       <View
         style={[
           styles.resultBox,
@@ -50,29 +85,47 @@ export const TerminalNodeComponent: React.FC<Props> = ({
         <Text style={[styles.completeTitle, { color: accentColor }]}>
           {title}
         </Text>
-        <Text style={styles.resultText}>{resultText}</Text>
+        <Text style={styles.resultText}>{displayMessage}</Text>
       </View>
 
-      {/* Artifact key fields */}
       {artifact && (
         <View style={styles.artifactBox}>
           <Text style={styles.sectionTitle}>Diagnostic Summary</Text>
 
-          <View style={styles.artifactRow}>
-            <Text style={styles.artifactLabel}>Stop Reason</Text>
-            <Text style={styles.artifactValue}>{artifact.stop_reason}</Text>
+          <View style={styles.artifactSection}>
+            <Text style={styles.artifactTitle}>{artifact.issue}</Text>
           </View>
 
-          <View style={styles.artifactRow}>
-            <Text style={styles.artifactLabel}>Last Confirmed State</Text>
+          <View style={styles.artifactSection}>
+            <Text style={styles.artifactLabel}>Status</Text>
+            <View
+              style={[styles.statusBadge, { backgroundColor: statusColor }]}
+            >
+              <Text style={styles.statusText}>{status}</Text>
+            </View>
+          </View>
+
+          <View style={styles.artifactSection}>
+            <Text style={styles.artifactLabel}>Key Findings</Text>
             <Text style={styles.artifactValue}>
               {artifact.last_confirmed_state}
             </Text>
           </View>
 
-          {Array.isArray(artifact.stabilization_actions) &&
+          {artifact.recommendations && artifact.recommendations.length > 0 && (
+            <View style={styles.artifactSection}>
+              <Text style={styles.artifactLabel}>Recommended Next Step</Text>
+              {artifact.recommendations.map((rec, i) => (
+                <Text key={i} style={styles.artifactListItem}>
+                  • {rec}
+                </Text>
+              ))}
+            </View>
+          )}
+
+          {artifact.stabilization_actions &&
             artifact.stabilization_actions.length > 0 && (
-              <View style={styles.artifactRow}>
+              <View style={styles.artifactSection}>
                 <Text style={styles.artifactLabel}>Stabilization Actions</Text>
                 {artifact.stabilization_actions.map((action, i) => (
                   <Text key={i} style={styles.artifactListItem}>
@@ -81,22 +134,9 @@ export const TerminalNodeComponent: React.FC<Props> = ({
                 ))}
               </View>
             )}
-
-          {Array.isArray(artifact.recommendations) &&
-            artifact.recommendations.length > 0 && (
-              <View style={styles.artifactRow}>
-                <Text style={styles.artifactLabel}>Recommendations</Text>
-                {artifact.recommendations.map((rec, i) => (
-                  <Text key={i} style={styles.artifactListItem}>
-                    • {rec}
-                  </Text>
-                ))}
-              </View>
-            )}
         </View>
       )}
 
-      {/* Session meta */}
       {summary && (
         <View style={styles.metaBox}>
           <Text style={styles.sectionTitle}>Session Info</Text>
@@ -149,7 +189,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderRadius: 12,
     padding: 24,
-    marginBottom: 16,
+    marginBottom: 20,
     alignItems: 'center',
   },
   completeTitle: {
@@ -163,20 +203,26 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 24,
   },
+
   artifactBox: {
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  artifactRow: {
-    marginBottom: 10,
+  artifactSection: {
+    marginBottom: 16,
+  },
+  artifactTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
   },
   artifactLabel: {
     fontSize: 12,
@@ -184,19 +230,32 @@ const styles = StyleSheet.create({
     color: '#888',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 3,
+    marginBottom: 8,
   },
   artifactValue: {
     fontSize: 14,
     color: '#333',
     lineHeight: 20,
   },
+  statusBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   artifactListItem: {
     fontSize: 14,
     color: '#333',
     lineHeight: 22,
     paddingLeft: 4,
+    marginBottom: 4,
   },
+
   metaBox: {
     backgroundColor: '#fafafa',
     borderRadius: 8,
@@ -210,6 +269,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
+
   primaryButton: {
     paddingVertical: 18,
     paddingHorizontal: 30,

@@ -53,7 +53,6 @@ export class FlowEngine {
     const flow = rawFlow as RawFlow;
     const flowJsonString = JSON.stringify(rawFlow);
     
-    // Verify checksum before creating engine
     await FlowChecksumValidator.verifyChecksumOrThrow(
       flowJsonString,
       expectedChecksum,
@@ -61,7 +60,6 @@ export class FlowEngine {
       flow.flowVersion
     );
 
-    // Checksum verified - safe to create engine
     return new FlowEngine(rawFlow);
   }
 
@@ -108,7 +106,6 @@ export class FlowEngine {
     try {
       const session = StorageService.loadSessionState();
       if (!session) return null;
-      // Only resume sessions for this flow that are still in progress
       if (session.flow_id !== this.flow.flowId) return null;
       if (session.completed || session.stopped) return null;
       return session;
@@ -120,8 +117,139 @@ export class FlowEngine {
   clearSession(): void {
     StorageService.clearSessionState();
   }
+  
 
-  // ─── Response processing ──────────────────────────────────────────────────
+  private deriveResultText(
+    node: RawFlowNode,
+    value: string | number | boolean,
+  ): string {
+    switch (node.type) {
+      case 'QUESTION': {
+        const answerKey = String(value);
+        
+        if (answerKey.toLowerCase() === 'yes') {
+          return 'Confirmed';
+        } else if (answerKey.toLowerCase() === 'no') {
+          return 'Not detected';
+        }
+        
+        return `Answered: ${answerKey}`;
+      }
+      
+      case 'SAFETY':
+        return 'Safety warning acknowledged.';
+      
+      case 'MEASURE': {
+        const m = node as MeasureNode;
+        const numValue = Number(value);
+        const unit = m.unit || '';
+        
+        const matchedBranch = m.branches.find(branch => {
+          return this.evaluateMeasureCondition(branch.condition, numValue);
+        });
+        
+        if (matchedBranch) {
+          return `Measured ${numValue}${unit}: ${this.interpretCondition(matchedBranch.condition)}`;
+        }
+        
+        return `Measured ${numValue}${unit}`;
+      }
+      
+      case 'TERMINAL':
+        return 'Diagnostic completed';
+      
+      default:
+        return 'Step processed';
+    }
+    
+  }
+
+ private extractKeyNodeText(node: RawFlowNode): string {
+  const fullText = node.text as string;
+  
+  switch (node.type) {
+    case 'QUESTION': {
+      // For questions: just find the last sentence (usually the question)
+      const sentences = fullText
+        .split(/[.!?]\s*/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      
+      const questionSentence = sentences.find(s => s.includes('?'));
+      if (questionSentence) {
+        return questionSentence.trim();
+      }
+
+      const lastSentence = sentences[sentences.length - 1];
+        return lastSentence;      
+    }
+    
+    case 'SAFETY': {
+      // For safety: extract the critical warning (first or second sentence)
+      const sentences = fullText
+        .split(/[.!]\s*/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      
+      // Look for critical keywords
+      const critical = sentences.find(s => 
+        s.toLowerCase().includes('do not') ||
+        s.toLowerCase().includes('disconnect') ||
+        s.toLowerCase().includes('stop')
+      );
+      
+      if (critical) return critical;
+      
+      // Otherwise first sentence
+      return sentences[0] || fullText;
+      
+      // Your example result: "Do not open electrical panels"
+    }
+    
+    case 'MEASURE':
+    case 'TERMINAL':
+      return fullText;
+    
+    default:
+      return fullText;
+  }
+}
+
+  private evaluateMeasureCondition(condition: string, value: number): boolean {
+    const ltMatch = condition.match(/^<\s*([\d.]+)$/);
+    if (ltMatch) return value < parseFloat(ltMatch[1]);
+    
+    const lteMatch = condition.match(/^<=\s*([\d.]+)$/);
+    if (lteMatch) return value <= parseFloat(lteMatch[1]);
+    
+    const gtMatch = condition.match(/^>\s*([\d.]+)$/);
+    if (gtMatch) return value > parseFloat(gtMatch[1]);
+    
+    const gteMatch = condition.match(/^>=\s*([\d.]+)$/);
+    if (gteMatch) return value >= parseFloat(gteMatch[1]);
+    
+    const rangeMatch = condition.match(/^([\d.]+)\s*-\s*([\d.]+)$/);
+    if (rangeMatch) {
+      const min = parseFloat(rangeMatch[1]);
+      const max = parseFloat(rangeMatch[2]);
+      return value >= min && value <= max;
+    }
+    
+    return false;
+  }
+
+  private interpretCondition(condition: string): string {
+    if (condition.includes('<')) {
+      return 'Below threshold';
+    }
+    if (condition.includes('>')) {
+      return 'Above threshold';
+    }
+    if (condition.includes('-')) {
+      return 'Within normal range';
+    }
+    return 'Condition met';
+  }
 
   async processResponse(
     sessionState: SessionState,
@@ -131,22 +259,16 @@ export class FlowEngine {
       const currentNode = this.getCurrentNode(sessionState);
       this.validateResponse(currentNode, value);
 
-      const event: SessionEvent = {
-        node_id: sessionState.current_node_id,
-        type: currentNode.type as SessionEvent['type'],
-        value,
-        timestamp: new Date().toISOString(),
-      };
-
-      const executedNode = {
-        node_id: sessionState.current_node_id,
-        node_type: currentNode.type,
-        executed_at: new Date().toISOString(),
-        value,
-      };
-
       if (currentNode.type === 'TERMINAL') {
-        return await this.processTerminalNode(sessionState, currentNode as TerminalNode, event);
+        const terminalEvent: SessionEvent = {
+          node_id: sessionState.current_node_id,
+          node_text: this.extractKeyNodeText(currentNode),
+          type: 'TERMINAL',
+          value: true,
+          result_text: 'Diagnostic completed',
+          timestamp: new Date().toISOString(),
+        };
+        return await this.processTerminalNode(sessionState, currentNode as TerminalNode, terminalEvent);
       }
 
       let nextNodeId: string;
@@ -193,6 +315,22 @@ export class FlowEngine {
           throw new FlowEngineError(`Unhandled node type: "${currentNode.type}"`);
       }
 
+      const event: SessionEvent = {
+        node_id: sessionState.current_node_id,
+        node_text: this.extractKeyNodeText(currentNode) as string,
+        type: currentNode.type as SessionEvent['type'],
+        value,
+        result_text: this.deriveResultText(currentNode, value),
+        timestamp: new Date().toISOString(),
+      };
+
+      const executedNode = {
+        node_id: sessionState.current_node_id,
+        node_type: currentNode.type,
+        executed_at: new Date().toISOString(),
+        value,
+      };
+
       const updatedState: SessionState = {
         ...sessionState,
         current_node_id: nextNodeId,
@@ -202,7 +340,6 @@ export class FlowEngine {
       
       StorageService.saveSessionState(updatedState);
 
-      // Auto-process TERMINAL nodes
       const nextNode = this.nodes[nextNodeId];
       if (nextNode?.type === 'TERMINAL') {
         return await this.processTerminalNode(updatedState, nextNode as TerminalNode);
@@ -222,16 +359,16 @@ export class FlowEngine {
   ): Promise<SessionState> {
     const event: SessionEvent = incomingEvent ?? {
       node_id: sessionState.current_node_id,
+      node_text: terminalNode.result,
       type: 'TERMINAL',
       value: true,
+      result_text: 'Diagnostic completed',
       timestamp: new Date().toISOString(),
     };
 
-    // MS5: Set required fields before finalization
     sessionState.stop_reason = 'User completed diagnostic';
     sessionState.last_confirmed_state = terminalNode.result;
 
-    // MS5: Finalize artifact using ArtifactFinalizationService
     const finalizationResult = await this.artifactService.finalizeArtifact(
       sessionState,
       terminalNode
@@ -252,7 +389,6 @@ export class FlowEngine {
     this.generateSummary(completedState);
     return completedState;
   }
-
 
   stopSession(sessionState: SessionState): SessionState {
     const stopped: SessionState = {
