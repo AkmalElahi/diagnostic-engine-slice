@@ -1,0 +1,261 @@
+{
+  "1.2": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Main house power switch is OFF",
+    "finding_key": "switch_off",
+    "recommendation": "Turn the main house power switch to the ON position and recheck systems"
+  },
+  "1.4": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Shore power pedestal breaker is OFF or tripped",
+    "finding_key": "pedestal_breaker_off",
+    "recommendation": "Reset the pedestal breaker to the ON position and verify power"
+  },
+  "1.5": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "RV is not recognizing incoming shore power",
+    "finding_key": "no_shore_power_recognition",
+    "recommendation": "Check shore power connection and pedestal supply"
+  },
+  "1.6": {
+    "tier": 2,
+    "condition": { "value": "Yes" },
+    "description": "Inverter or charger is showing a warning or fault",
+    "finding_key": "inverter_fault",
+    "recommendation": "Check inverter display for specific fault code and consult equipment manual"
+  },
+  "1.10": {
+    "tier": 3,
+    "condition": { "value": "Yes" },
+    "description": "Lights appear dim or fans run slower than normal",
+    "finding_key": "dim_lights_slow_fans",
+    "recommendation": "Check battery voltage and charging system operation"
+  },
+  "1.11": {
+    "tier": 2,
+    "condition": { "value": "No" },
+    "description": "Battery cables appear loose or corroded",
+    "finding_key": "battery_cable_issue",
+    "recommendation": "Clean and tighten battery cable connections"
+  },
+  "1.12": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Battery disconnect switch is OFF",
+    "finding_key": "battery_disconnect_off",
+    "recommendation": "Turn the battery disconnect switch to the ON position"
+  },
+  "1.13": {
+    "tier": 1,
+    "condition": { "value": "Yes" },
+    "description": "Blown fuse or tripped breaker detected",
+    "finding_key": "blown_fuse",
+    "recommendation": "Identify and replace the blown fuse or reset the tripped breaker"
+  },
+  "1.14": {
+    "tier": 2,
+    "condition": { "value": "One" },
+    "description": "Single circuit or device not working",
+    "finding_key": "single_circuit_failure",
+    "recommendation": "Check the specific fuse or breaker for the affected circuit"
+  },
+  "2A.1": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "City water spigot is not turned on",
+    "finding_key": "spigot_off",
+    "recommendation": "Turn on the water at the spigot and verify flow"
+  },
+  "2A.2": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Water hose has kinks or is not fully connected",
+    "finding_key": "hose_kinked",
+    "recommendation": "Straighten hose kinks and ensure connections are secure"
+  },
+  "2A.4": {
+    "tier": 2,
+    "condition": { "value": "Flow returned" },
+    "description": "Regulator or filter restriction likely",
+    "finding_key": "regulator_restriction",
+    "recommendation": "Replace the water pressure regulator or inline filter"
+  },
+  "2A.6": {
+    "tier": 2,
+    "condition": { "value": "Yes" },
+    "description": "Onboard water filter was recently changed",
+    "finding_key": "filter_recently_changed",
+    "recommendation": "Verify filter is installed correctly and not restricting flow"
+  },
+  "2A.7": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Water system is not set to CITY or NORMAL mode",
+    "finding_key": "wrong_system_mode",
+    "recommendation": "Set the water system valve to CITY or NORMAL mode"
+  },
+  "2A.8": {
+    "tier": 2,
+    "condition": { "value": "Yes" },
+    "description": "Temperatures have been near freezing",
+    "finding_key": "freeze_conditions",
+    "recommendation": "Check heating system for freeze protection"
+  },
+  "2A.9": {
+    "tier": 2,
+    "condition": { "value": "No" },
+    "description": "Heated bays do not feel warm",
+    "finding_key": "heated_bays_cold",
+    "recommendation": "Check heating system for freeze protection"
+  },
+  "2B.1": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Fresh water tank is empty",
+    "finding_key": "tank_empty",
+    "recommendation": "Fill the fresh water tank and retry"
+  },
+  "2B.2": {
+    "tier": 2,
+    "condition": { "value": "Air only" },
+    "description": "Water pump is drawing air instead of water",
+    "finding_key": "pump_drawing_air",
+    "recommendation": "Check tank level and verify pump is primed"
+  },
+  "2B.2_weak": {
+    "tier": 3,
+    "condition": { "value": "Weak flow" },
+    "description": "Water flow is weak from pump",
+    "finding_key": "weak_pump_flow",
+    "recommendation": "Check for clogs in lines or filter restrictions"
+  },
+  "2B.3": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Water pump is not turned on",
+    "finding_key": "pump_off",
+    "recommendation": "Turn the water pump switch to the ON position"
+  },
+  "2B.4": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Water pump is not running when activated",
+    "finding_key": "pump_no_power",
+    "recommendation": "Run the Electrical diagnostic to check power supply to the pump"
+  },
+  "2B.5": {
+    "tier": 2,
+    "condition": { "value": "Yes" },
+    "description": "Water pump runs continuously without stopping",
+    "finding_key": "pump_continuous",
+    "recommendation": "Check for leaks in the water system or faulty pressure switch"
+  },
+  "3.1": {
+    "tier": 1,
+    "condition": { "value": "Yes" },
+    "description": "Propane smell or hissing detected",
+    "finding_key": "propane_leak",
+    "recommendation": "Evacuate immediately and contact emergency services"
+  },
+  "3.2": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Propane tank is empty",
+    "finding_key": "tank_empty_propane",
+    "recommendation": "Refill or replace the propane tank"
+  },
+  "3.4": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Propane tank valve is closed",
+    "finding_key": "valve_closed",
+    "recommendation": "Open the propane tank valve fully"
+  },
+  "3.6": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Propane appliances have no power or control lights",
+    "finding_key": "no_control_power",
+    "recommendation": "Run the Electrical diagnostic to check control power"
+  },
+  "3.7_clicks": {
+    "tier": 2,
+    "condition": { "value": "Clicks no flame" },
+    "description": "Stove igniter clicks but no flame appears",
+    "finding_key": "igniter_no_gas",
+    "recommendation": "Check propane supply and verify tank valve is fully open"
+  },
+  "3.7_gas": {
+    "tier": 2,
+    "condition": { "value": "Gas no spark" },
+    "description": "Gas present but igniter not sparking",
+    "finding_key": "igniter_no_spark",
+    "recommendation": "Check igniter battery or electrical connection"
+  },
+  "3.7_nothing": {
+    "tier": 1,
+    "condition": { "value": "Nothing" },
+    "description": "Stove shows no response when activated",
+    "finding_key": "stove_no_response",
+    "recommendation": "Check electrical power to appliance controls"
+  },
+  "4.2": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Parking brake is not applied",
+    "finding_key": "parking_brake_off",
+    "recommendation": "Apply the parking brake and retry system operation"
+  },
+  "4.3": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Doors or compartments are not closed",
+    "finding_key": "doors_open",
+    "recommendation": "Close all doors and compartments and retry"
+  },
+  "4.4": {
+    "tier": 2,
+    "condition": { "value": "No" },
+    "description": "RV is not level",
+    "finding_key": "not_level",
+    "recommendation": "Run the Leveling diagnostic to verify RV is level"
+  },
+  "4.5": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Ignition is not ON when required",
+    "finding_key": "ignition_off",
+    "recommendation": "Turn ignition to ON position and retry"
+  },
+  "4.6": {
+    "tier": 2,
+    "condition": { "value": "Yes" },
+    "description": "Lights dim when operating slide or leveling system",
+    "finding_key": "weak_power",
+    "recommendation": "Run the Electrical diagnostic to check system power"
+  },
+  "4.7": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "Slide does not move when activated",
+    "finding_key": "slide_no_movement",
+    "recommendation": "Check for obstructions and verify motor operation"
+  },
+  "4.8": {
+    "tier": 1,
+    "condition": { "value": "No" },
+    "description": "No sound when activating slide or leveling system",
+    "finding_key": "no_sound_activation",
+    "recommendation": "Check electrical power and control switch operation"
+  },
+  "4.9": {
+    "tier": 2,
+    "condition": { "value": "Yes" },
+    "description": "One side of slide moves differently than the other",
+    "finding_key": "uneven_slide_movement",
+    "recommendation": "Check for binding or synchronization issues in slide mechanism"
+  }
+}
