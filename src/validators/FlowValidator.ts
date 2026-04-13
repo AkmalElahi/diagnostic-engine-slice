@@ -52,6 +52,9 @@ export interface FlowArtifact {
   stabilization_actions?: string[];
   recommendations?: string[];
   notes?: string;
+  confidence_level?: string;
+  primary_finding?: string;
+  explanation?: string;
   [key: string]: unknown;
 }
 

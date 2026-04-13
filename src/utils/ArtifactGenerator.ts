@@ -41,7 +41,7 @@ interface TierClassificationEntry {
 
 interface SessionEvent {
   node_id: string;
-  type: 'ANSWER' | 'MEASURE' | 'SAFETY' | 'STOP';
+  type: 'QUESTION' | 'MEASURE' | 'SAFETY' | 'TERMINAL' | 'STOP';
   value: string;
   timestamp: string;
   node_text?: string;
@@ -144,7 +144,7 @@ export class ArtifactGenerator {
     const findings: Finding[] = [];
 
     for (const event of sessionState.events) {
-      if (event.type !== 'ANSWER' && event.type !== 'MEASURE') {
+      if (event.type !== 'QUESTION' && event.type !== 'MEASURE') {
         continue;
       }
 
@@ -193,7 +193,7 @@ export class ArtifactGenerator {
 
   private getTierForResponse(nodeId: string, value: string): PriorityTier | null {
     
-    if (value === "Not sure") {
+    if (value === "Not sure" || value === "not_sure") {
       return PriorityTier.UNKNOWN;
     }
 
@@ -203,11 +203,45 @@ export class ArtifactGenerator {
       return null;
     }
 
+    if (classification.condition.value.includes('<') || 
+        classification.condition.value.includes('>') ||
+        classification.condition.value.includes('-')) {
+      const numValue = parseFloat(value);
+      if (isNaN(numValue)) return null;
+      
+      return this.evaluateMeasureCondition(classification.condition.value, numValue) 
+        ? classification.tier as PriorityTier 
+        : null;
+    }
+
     if (classification.condition.value === value) {
       return classification.tier as PriorityTier;
     }
 
     return null;
+  }
+
+  private evaluateMeasureCondition(condition: string, value: number): boolean {
+    const ltMatch = condition.match(/^<\s*([\d.]+)$/);
+    if (ltMatch) return value < parseFloat(ltMatch[1]);
+    
+    const lteMatch = condition.match(/^<=\s*([\d.]+)$/);
+    if (lteMatch) return value <= parseFloat(lteMatch[1]);
+    
+    const gtMatch = condition.match(/^>\s*([\d.]+)$/);
+    if (gtMatch) return value > parseFloat(gtMatch[1]);
+    
+    const gteMatch = condition.match(/^>=\s*([\d.]+)$/);
+    if (gteMatch) return value >= parseFloat(gteMatch[1]);
+    
+    const rangeMatch = condition.match(/^([\d.]+)\s*-\s*([\d.]+)$/);
+    if (rangeMatch) {
+      const min = parseFloat(rangeMatch[1]);
+      const max = parseFloat(rangeMatch[2]);
+      return value >= min && value <= max;
+    }
+    
+    return false;
   }
 
   private assignConfidence(
@@ -216,6 +250,10 @@ export class ArtifactGenerator {
     sessionState: SessionState
   ): ConfidenceLevel {
     
+    if (allFindings.length === 0) {
+      return "Could not identify a clear cause";
+    }
+
     const notSureCount = this.countNotSureResponses(sessionState);
     const hasConflicts = this.hasConflictingSignals(allFindings, sessionState);
 
@@ -244,7 +282,7 @@ export class ArtifactGenerator {
 
   private countNotSureResponses(sessionState: SessionState): number {
     return sessionState.events.filter(
-      event => event.value === "Not sure"
+      event => event.value === "Not sure" || event.value === "not_sure"
     ).length;
   }
 
@@ -277,23 +315,28 @@ export class ArtifactGenerator {
     const flowId = flowData.flow_id;
     const findingKey = primaryFinding.findingKey;
 
-    if (flowId === 'water_system' && findingKey.includes('pump_no_power')) {
+    // Water → Electrical
+    if (flowId === 'flow_2_water_system_issue' && findingKey.includes('pump_no_power')) {
       return "Run the Electrical diagnostic to check power supply to the pump";
     }
 
-    if (flowId === 'propane_system' && findingKey.includes('no_control_power')) {
+    // Propane → Electrical
+    if (flowId === 'flow_3_propane_system_issue' && findingKey.includes('no_control_power')) {
       return "Run the Electrical diagnostic to check control power";
     }
 
-    if (flowId === 'slides_leveling' && findingKey.includes('weak_power')) {
+    // Slides → Electrical
+    if (flowId === 'flow_4_slides_leveling_issue' && findingKey.includes('weak_power')) {
       return "Run the Electrical diagnostic to check system power";
     }
 
-    if (flowId === 'slides_leveling' && findingKey.includes('not_level')) {
+    // Slides → Leveling
+    if (flowId === 'flow_4_slides_leveling_issue' && findingKey.includes('not_level')) {
       return "Run the Leveling diagnostic to verify RV is level";
     }
 
-    if (flowId === 'water_system' && findingKey.includes('freeze')) {
+    // Water → Heating
+    if (flowId === 'flow_2_water_system_issue' && findingKey.includes('freeze')) {
       return "Check heating system for freeze protection";
     }
 
@@ -302,7 +345,7 @@ export class ArtifactGenerator {
 
   private extractBatteryVoltage(sessionState: SessionState): number | null {
     const voltageEvent = sessionState.events.find(
-      event => event.type === 'MEASURE' && event.node_id === '1.8'
+      event => event.type === 'MEASURE' && event.node_id === 'measure_battery_voltage'
     );
 
     if (!voltageEvent) {

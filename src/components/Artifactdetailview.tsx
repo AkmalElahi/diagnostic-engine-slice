@@ -61,33 +61,41 @@ export const ArtifactDetailView: React.FC<Props> = ({ summary, onClose }) => {
             </View>
             <View style={styles.section}>
               <Text style={styles.sectionLabel}>Key Findings</Text>
-              <Text style={styles.sectionValue}>{artifact.last_confirmed_state}</Text>
+              <Text style={styles.sectionValue}>
+                {artifact.primary_finding}
+              </Text>
             </View>
-            {artifact.recommendations && artifact.recommendations.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Recommended Next Step</Text>
-                {artifact.recommendations.map((rec, index) => (
-                  <Text key={index} style={styles.bulletItem}>
-                    • {rec}
-                  </Text>
-                ))}
-              </View>
-            )}
-            {artifact.stabilization_actions && artifact.stabilization_actions.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Stabilization Actions</Text>
-                {artifact.stabilization_actions.map((action, index) => (
-                  <Text key={index} style={styles.bulletItem}>
-                    • {action}
-                  </Text>
-                ))}
-              </View>
-            )}
+            <View style={styles.artifactSection}>
+              <Text style={styles.sectionLabel}>Explanation</Text>
+              <Text style={styles.sectionValue}>{artifact.explanation}</Text>
+            </View>
+            {artifact.recommendations &&
+              artifact.recommendations.length > 0 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionLabel}>Recommended Next Step</Text>
+                  {artifact.recommendations.map((rec, index) => (
+                    <Text key={index} style={styles.bulletItem}>
+                      • {rec}
+                    </Text>
+                  ))}
+                </View>
+              )}
+            {artifact.stabilization_actions &&
+              artifact.stabilization_actions.length > 0 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionLabel}>Stabilization Actions</Text>
+                  {artifact.stabilization_actions.map((action, index) => (
+                    <Text key={index} style={styles.bulletItem}>
+                      • {action}
+                    </Text>
+                  ))}
+                </View>
+              )}
           </View>
         )}
         <View style={styles.traceSection}>
           <Text style={styles.traceTitle}>Step-by-Step Trace</Text>
-          
+
           {summary.events.map((event, index) => {
             return (
               <View key={index} style={styles.traceStep}>
@@ -99,21 +107,39 @@ export const ArtifactDetailView: React.FC<Props> = ({ summary, onClose }) => {
                   <View style={styles.stepRow}>
                     <Text style={styles.stepLabel}>Step Name:</Text>
                     <Text style={styles.stepValue}>
-                      {event.node_text || String(event.node_id)?.replace(/_/g, ' ')?.toUpperCase()}
+                      {event.node_text ||
+                        String(event.node_id)
+                          ?.replace(/_/g, ' ')
+                          ?.toUpperCase()}
                     </Text>
                   </View>
                   <View style={styles.stepRow}>
                     <Text style={styles.stepLabel}>User Input:</Text>
-                    <Text style={{...styles.stepValue, textTransform:"capitalize"}}>
+                    <Text
+                      style={{
+                        ...styles.stepValue,
+                        textTransform: 'capitalize',
+                      }}
+                    >
                       {typeof event.value === 'boolean'
-                        ? event.value ? 'Yes' : 'No'
+                        ? event.value
+                          ? 'Yes'
+                          : 'No'
                         : String(event.value).replace(/_/g, ' ')}
                     </Text>
                   </View>
                   <View style={styles.stepRow}>
                     <Text style={styles.stepLabel}>System Result:</Text>
-                    <Text style={{...styles.stepValue, textTransform:"capitalize"}}>
-                      {String(event.result_text)?.replace(/_/g, ' ') || (artifact ? artifact.last_confirmed_state : 'Processed')}
+                    <Text
+                      style={{
+                        ...styles.stepValue,
+                        textTransform: 'capitalize',
+                      }}
+                    >
+                      {String(event.result_text)?.replace(/_/g, ' ') ||
+                        (artifact
+                          ? artifact.last_confirmed_state
+                          : 'Processed')}
                     </Text>
                   </View>
                 </View>
@@ -160,7 +186,6 @@ export const ArtifactDetailView: React.FC<Props> = ({ summary, onClose }) => {
             </View>
           </View>
         </View>
-
       </ScrollView>
     </View>
   );

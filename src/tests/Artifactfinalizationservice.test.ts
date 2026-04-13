@@ -1,9 +1,9 @@
 import { MMKV, createMMKV } from 'react-native-mmkv';
-import { ArtifactFinalizationService } from '../utils/Artifactfinalizationservice';
 import {
   SessionState,
   TerminalNode,
 } from '../types';
+import { ArtifactFinalizationService } from '../services/Artifactfinalizationservice';
 
 // Mock MMKV
 jest.mock('react-native-mmkv');

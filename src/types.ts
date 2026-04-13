@@ -45,6 +45,9 @@ export interface FlowArtifact {
   notes?: string;
   // Flow-specific fields
   [key: string]: unknown;
+  confidence_level?: string;
+  primary_finding?: string;
+  explanation?: string;
 }
 
 export interface TerminalNode {

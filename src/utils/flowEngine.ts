@@ -1,3 +1,4 @@
+import { artifactGenerator } from './ArtifactGenerator';
 import { SessionState, SessionEvent, SessionSummary } from '../types';
 import { StorageService } from '../services/StorageService';
 import { ArtifactFinalizationService } from '../services/Artifactfinalizationservice';
@@ -18,7 +19,6 @@ import {
 } from '../validators/FlowValidator';
 import { RigIdentityService } from '../services/RigIdentityService';
 
-
 export { FlowValidationError, ChecksumVerificationError };
 
 export class FlowEngineError extends Error {
@@ -31,7 +31,7 @@ export class FlowEngineError extends Error {
 export class FlowEngine {
   private flow: RawFlow;
   private nodes: Record<string, RawFlowNode>;
-  private artifactService: ArtifactFinalizationService;
+  // private artifactService: ArtifactFinalizationService;
 
   private constructor(rawFlow: unknown) {
     try {
@@ -39,7 +39,7 @@ export class FlowEngine {
       this.flow = rawFlow as RawFlow;
       this.nodes = this.flow.nodes;
       const storage = createMMKV({ id: 'rv-diagnostic-engine' });
-      this.artifactService = new ArtifactFinalizationService(storage);
+      // this.artifactService = new ArtifactFinalizationService(storage);
     } catch (error) {
       if (error instanceof FlowValidationError) throw error;
       throw new FlowEngineError(`Invalid flow definition: ${error}`);
@@ -117,7 +117,6 @@ export class FlowEngine {
   clearSession(): void {
     StorageService.clearSessionState();
   }
-  
 
   private deriveResultText(
     node: RawFlowNode,
@@ -161,59 +160,52 @@ export class FlowEngine {
       default:
         return 'Step processed';
     }
-    
   }
 
- private extractKeyNodeText(node: RawFlowNode): string {
-  const fullText = node.text as string;
-  
-  switch (node.type) {
-    case 'QUESTION': {
-      // For questions: just find the last sentence (usually the question)
-      const sentences = fullText
-        .split(/[.!?]\s*/)
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-      
-      const questionSentence = sentences.find(s => s.includes('?'));
-      if (questionSentence) {
-        return questionSentence.trim();
-      }
+  private extractKeyNodeText(node: RawFlowNode): string {
+    const fullText = node.text as string;
+    
+    switch (node.type) {
+      case 'QUESTION': {
+        const sentences = fullText
+          .split(/[.!?]\s*/)
+          .map(s => s.trim())
+          .filter(s => s.length > 0);
+        
+        const questionSentence = sentences.find(s => s.includes('?'));
+        if (questionSentence) {
+          return questionSentence.trim();
+        }
 
-      const lastSentence = sentences[sentences.length - 1];
+        const lastSentence = sentences[sentences.length - 1];
         return lastSentence;      
+      }
+      
+      case 'SAFETY': {
+        const sentences = fullText
+          .split(/[.!]\s*/)
+          .map(s => s.trim())
+          .filter(s => s.length > 0);
+        
+        const critical = sentences.find(s => 
+          s.toLowerCase().includes('do not') ||
+          s.toLowerCase().includes('disconnect') ||
+          s.toLowerCase().includes('stop')
+        );
+        
+        if (critical) return critical;
+        
+        return sentences[0] || fullText;
+      }
+      
+      case 'MEASURE':
+      case 'TERMINAL':
+        return fullText;
+      
+      default:
+        return fullText;
     }
-    
-    case 'SAFETY': {
-      // For safety: extract the critical warning (first or second sentence)
-      const sentences = fullText
-        .split(/[.!]\s*/)
-        .map(s => s.trim())
-        .filter(s => s.length > 0);
-      
-      // Look for critical keywords
-      const critical = sentences.find(s => 
-        s.toLowerCase().includes('do not') ||
-        s.toLowerCase().includes('disconnect') ||
-        s.toLowerCase().includes('stop')
-      );
-      
-      if (critical) return critical;
-      
-      // Otherwise first sentence
-      return sentences[0] || fullText;
-      
-      // Your example result: "Do not open electrical panels"
-    }
-    
-    case 'MEASURE':
-    case 'TERMINAL':
-      return fullText;
-    
-    default:
-      return fullText;
   }
-}
 
   private evaluateMeasureCondition(condition: string, value: number): boolean {
     const ltMatch = condition.match(/^<\s*([\d.]+)$/);
@@ -357,6 +349,7 @@ export class FlowEngine {
     terminalNode: TerminalNode,
     incomingEvent?: SessionEvent
   ): Promise<SessionState> {
+    
     const event: SessionEvent = incomingEvent ?? {
       node_id: sessionState.current_node_id,
       node_text: terminalNode.result,
@@ -369,10 +362,24 @@ export class FlowEngine {
     sessionState.stop_reason = 'User completed diagnostic';
     sessionState.last_confirmed_state = terminalNode.result;
 
-    const finalizationResult = await this.artifactService.finalizeArtifact(
-      sessionState,
-      terminalNode
-    );
+    // AUTO-DETECT: Does terminal node have an artifact template?
+    // const hasTemplate = terminalNode.artifact !== undefined && 
+    //                     terminalNode.artifact !== null &&
+    //                     Object.keys(terminalNode.artifact).length > 0;
+    
+    let artifact: FlowArtifact;
+    // let finalizationResult: any = undefined;
+
+    // if (hasTemplate) {
+    //   finalizationResult = await this.artifactService.finalizeArtifact(
+    //     sessionState,
+    //     terminalNode
+    //   );
+    //   artifact = finalizationResult.finalization_result.final_artifact as FlowArtifact;
+      
+    // } else {
+      artifact = this.generateDiagnosticArtifact(sessionState, terminalNode);
+    // }
 
     const completedState: SessionState = {
       ...sessionState,
@@ -382,12 +389,99 @@ export class FlowEngine {
       completed_at: new Date().toISOString(),
       terminal_node_id: sessionState.current_node_id,
       result: terminalNode.result,
-      artifact: finalizationResult.finalization_result.final_artifact as FlowArtifact,
+      artifact: artifact,
     };
 
     StorageService.saveSessionState(completedState);
     this.generateSummary(completedState);
     return completedState;
+  }
+
+  private generateDiagnosticArtifact(
+    sessionState: SessionState,
+    terminalNode: TerminalNode
+  ): FlowArtifact {
+    
+    const diagnosticSessionState = this.convertToDiagnosticSessionState(sessionState);
+    const diagnosticFlowData = this.convertToDiagnosticFlow();
+    
+    const diagnosticArtifact = artifactGenerator.generate(diagnosticSessionState, diagnosticFlowData);
+    
+    const flowArtifact: FlowArtifact = {
+      artifact_id: sessionState.artifact_id,
+      artifact_hash: '',
+      vertical_id: 'RV',
+      issue: diagnosticArtifact.result.primary_finding,
+      flow_id: this.flow.flowId,
+      flow_version: this.flow.flowVersion,
+      artifact_schema_version: diagnosticArtifact.artifact_schema_version,
+      stop_reason: sessionState.stop_reason,
+      last_confirmed_state: sessionState.last_confirmed_state,
+      
+      confidence_level: diagnosticArtifact.result.confidence_level,
+      primary_finding: diagnosticArtifact.result.primary_finding,
+      explanation: diagnosticArtifact.result.explanation,
+      
+      safety_notes: [],
+      stabilization_actions: [],
+      recommendations: [diagnosticArtifact.result.recommended_next_step],
+      notes: diagnosticArtifact.result.explanation,
+    };
+    
+    return flowArtifact;
+  }
+
+  private convertToDiagnosticSessionState(sessionState: SessionState): any {
+    return {
+      sessionId: sessionState.session_id,
+      flowId: sessionState.flow_id,
+      flowVersion: sessionState.flow_version,
+      currentNodeId: sessionState.current_node_id,
+      
+      events: sessionState.events.map(event => ({
+        node_id: event.node_id,
+        type: event.type,
+        value: this.extractEventValue(event, sessionState),
+        timestamp: event.timestamp,
+        node_text: event.node_text,
+        result_text: event.result_text
+      })),
+      
+      startTime: sessionState.started_at,
+      lastUpdateTime: sessionState.completed_at || new Date().toISOString(),
+      isComplete: sessionState.completed
+    };
+  }
+
+  private extractEventValue(event: SessionEvent, sessionState: SessionState): string {
+    if (event.type === 'QUESTION' && event.node_id in sessionState.answers) {
+      return sessionState.answers[event.node_id];
+    }
+    
+    if (event.type === 'MEASURE' && event.node_id in sessionState.measurements) {
+      return String(sessionState.measurements[event.node_id]);
+    }
+    
+    return String(event.value);
+  }
+
+  private convertToDiagnosticFlow(): any {
+    return {
+      flow_id: this.flow.flowId,
+      flow_version: this.flow.flowVersion,
+      flow_name: this.getFlowDisplayName(),
+      nodes: this.nodes
+    };
+  }
+
+  private getFlowDisplayName(): string {
+    const names: Record<string, string> = {
+      'electrical_system': 'Electrical System',
+      'water_system': 'Water System',
+      'propane_system': 'Propane System',
+      'slides_leveling': 'Slides and Leveling'
+    };
+    return names[this.flow.flowId] || this.flow.flowId;
   }
 
   stopSession(sessionState: SessionState): SessionState {

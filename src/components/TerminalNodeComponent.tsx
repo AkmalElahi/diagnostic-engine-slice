@@ -137,6 +137,40 @@ export const TerminalNodeComponent: React.FC<Props> = ({
         </View>
       )}
 
+      {artifact && (
+        <View style={styles.artifactBox}>
+          <Text style={styles.sectionTitle}>Diagnostic Results</Text>
+
+          <View style={styles.artifactSection}>
+            <Text style={styles.artifactLabel}>Confidence</Text>
+            <Text style={styles.confidenceText}>
+              {artifact.confidence_level}
+            </Text>
+          </View>
+
+          <View style={styles.artifactSection}>
+            <Text style={styles.artifactLabel}>Finding</Text>
+            <Text style={styles.artifactTitle}>{artifact.primary_finding}</Text>
+          </View>
+
+          <View style={styles.artifactSection}>
+            <Text style={styles.artifactLabel}>Explanation</Text>
+            <Text style={styles.artifactValue}>{artifact.explanation}</Text>
+          </View>
+
+          {artifact.recommendations && artifact.recommendations.length > 0 && (
+            <View style={styles.artifactSection}>
+              <Text style={styles.artifactLabel}>Recommended Next Step</Text>
+              {artifact.recommendations.map((rec, i) => (
+                <Text key={i} style={styles.recommendationText}>
+                  {rec}
+                </Text>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
+
       {summary && (
         <View style={styles.metaBox}>
           <Text style={styles.sectionTitle}>Session Info</Text>
@@ -293,5 +327,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  confidenceText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2196F3',
+  },
+  recommendationText: {
+    fontSize: 14,
+    color: '#0066cc',
+    lineHeight: 22,
+    fontWeight: '500',
   },
 });
